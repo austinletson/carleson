@@ -649,9 +649,51 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
+
+
+open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
+  calc
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ ?_ _
+    _ ≤ ∑' i : 𝓛 (X := X) n u,
+      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := by -- 5.2.25
+        have : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ ball (c i) (4 * D ^ s i) := fun _ _ ↦ Grid_subset_ball
+        #check tsum_le_tsum
+    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X)  := sorry
+    _ = C5_2_9 X n * volume (𝓘 u : Set X) := sorry
+  sorry
+
+  /- #check tsum_le_tsum -/
+
+lemma boundary_exception' {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
+    volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
+  have : ∀ i ∈ 𝓛 (X := X) n u, true := by
+    intro i hi
+    have : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
+    have note : (D ^ (-S - s i : ℤ) : ℝ≥0) < 12 := sorry
+    have := small_boundary <| le_of_lt note
+    set X := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
+    have : coeGrid i ⊆ X := sorry
+    rfl
+  sorry  calc
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume i := measure_biUnion_le _ ?_ _
+    _ ≤ ∑' i : 𝓛 (X := X) n u,
+      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := sorry
+    _ ≤ volume ↑(𝓘 u) * 2 * 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := sorry
+
+  #check tsum_le_tsum
+
+  have : ∀ i ∈ 𝓛 (X := X) n u, true := by
+    intro i hi
+    have : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
+    have note : (D ^ (-S - s i : ℤ) : ℝ≥0) < 12 := sorry
+    have := small_boundary <| le_of_lt note
+    set X := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
+    have : coeGrid i ⊆ X := sorry
+    rfl
+  sorry
   sorry
 
 lemma third_exception_aux :
