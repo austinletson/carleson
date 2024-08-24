@@ -649,25 +649,41 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
+
+example {α : Type} {p : α → Prop} (foo bar : Set α) (foo_def : foo = {s | p s}) (bar_p : ∀ s : bar, p s) : bar ⊆ foo := by
+  intro s hs
+  rw [foo_def]
+  exact bar_p ⟨s, hs⟩
   
 #check tsum_le_tsum
+example {α : Type} (A B : Set α) : A ⊆ B → ∀ a ∈ A, a ∈ B := by
+  intro hab a haa
+  exact hab haa
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
   calc
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ ?_ _
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _  _ _
     _ ≤ ∑' i : 𝓛 (X := X) n u,
       volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := by  sorry
 
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X)  := by
         set X_u := { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
-        have vol_i_le_vol_X : ∀ i ∈ 𝓛 (X := X) n u, volume (i : Set X) ≤ volume X_u := by -- 5.2.25
+        have vol_i_le_vol_X : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
           intro i hi
-          have i_in_ball_4 : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
+          rw [subset_setOf]
+          intro ipt hipt
+          simp [𝓛, mem_setOf] at hi
+          rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
+          constructor
+          · exact i_subset_I_u hipt
+          · sorry
           simp [𝓛, mem_setOf] at hi
           rcases hi with ⟨i_subset_I_u, s_i_eq_stuff, I_not_contain_8_ball⟩
+          have i_in_ball_4 : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
+          #check dist_triangle (12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ)
           sorry
         sorry
 
