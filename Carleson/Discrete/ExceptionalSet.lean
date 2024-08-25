@@ -670,9 +670,9 @@ open GridStructure (coeGrid) in
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
   calc
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ ?_ _
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
     _ ≤ ∑' i : 𝓛 (X := X) n u,
-      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := by  sorry
+      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := sorry
 
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X)  := by
         set X_u := { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
