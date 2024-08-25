@@ -654,18 +654,23 @@ example {α : Type} {p : α → Prop} (foo bar : Set α) (foo_def : foo = {s | p
   intro s hs
   rw [foo_def]
   exact bar_p ⟨s, hs⟩
+
+lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt ci ≤ 4) (h' : edist ci bpt ≤ 8) : edist ipt bpt ≤ 12 := by
+  have : (12: ENNReal) = 4 + 8 := by norm_num
+  rw [this]
+  exact (edist_triangle ipt ci bpt).trans (add_le_add h h')
+
+
   
 #check tsum_le_tsum
-example {α : Type} (A B : Set α) : A ⊆ B → ∀ a ∈ A, a ∈ B := by
-  intro hab a haa
-  exact hab haa
+example {α : Type} (B I : Set α) : ¬ B ⊆ I → ∃ b ∈ B, b ∉ I := not_subset.mp
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
   calc
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _  _ _
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ ?_ _
     _ ≤ ∑' i : 𝓛 (X := X) n u,
       volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := by  sorry
 
@@ -675,17 +680,26 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           intro i hi
           rw [subset_setOf]
           intro ipt hipt
-          simp [𝓛, mem_setOf] at hi
           rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
           constructor
           · exact i_subset_I_u hipt
-          · sorry
-          simp [𝓛, mem_setOf] at hi
-          rcases hi with ⟨i_subset_I_u, s_i_eq_stuff, I_not_contain_8_ball⟩
-          have i_in_ball_4 : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
-          #check dist_triangle (12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ)
-          sorry
+          · have : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
+            rw [this]
+            have : (12 : ℝ≥0∞) * ↑D ^ s i = (4 * ↑D ^ s i) + (8 * ↑D ^ s i) := by ring
+            rw [this]
+            obtain ⟨bpt, hbpt, hnotin⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+
+            have : edist ipt (c i) ≤ 4 * ↑D ^ s i := by
+              have : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
+              have : (c i) ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball Grid.c_mem_Grid
+              sorry
+            have : edist (c i) bpt ≤ 8 * ↑D ^ s i := sorry
+
+            #check EMetric.infEdist_le_edist_add_infEdist
+            -- have := add_le_add
+            sorry
         sorry
+            
 
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := sorry
   sorry
