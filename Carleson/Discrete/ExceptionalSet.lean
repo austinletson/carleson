@@ -661,7 +661,7 @@ lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt
   exact (edist_triangle ipt ci bpt).trans (add_le_add h h')
 
 
-  
+
 #check tsum_le_tsum
 example {α : Type} (B I : Set α) : ¬ B ⊆ I → ∃ b ∈ B, b ∉ I := not_subset.mp
 
@@ -687,53 +687,35 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             rw [this]
             have : (12 : ℝ≥0∞) * ↑D ^ s i = (4 * ↑D ^ s i) + (8 * ↑D ^ s i) := by ring
             rw [this]
-            obtain ⟨bpt, hbpt, hnotin⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+            obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
 
-            have : edist ipt (c i) ≤ 4 * ↑D ^ s i := by
-              have : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
-              have : (c i) ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball Grid.c_mem_Grid
-              sorry
-            have : edist (c i) bpt ≤ 8 * ↑D ^ s i := sorry
+            have ipt_dist_c_i : dist ipt (c i) < 4 * D ^ s i := by
+              have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
+              simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+            have bpt_dist_c_i : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
+              defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+              Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+            have trianble_inep : dist ipt bpt ≤ 12 * D ^ s i :=
+              calc dist ipt bpt
+                _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
+                _ ≤ 4 * D ^ s i + dist (c i) bpt := by rel [ipt_dist_c_i]
+                _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw[dist_comm]
+                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by rel [bpt_dist_c_i]
+                _ ≤ 12 * D ^ s i := by linarith
 
-            #check EMetric.infEdist_le_edist_add_infEdist
-            -- have := add_le_add
-            sorry
-        sorry
+            have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
             
 
+            sorry 
+        sorry
+
+
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := sorry
-  sorry
-
-  /- #check tsum_le_tsum -/
-
-lemma boundary_exception' {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
-    volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
-  have : ∀ i ∈ 𝓛 (X := X) n u, true := by
-    intro i hi
-    have : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
-    have note : (D ^ (-S - s i : ℤ) : ℝ≥0) < 12 := sorry
-    have := small_boundary <| le_of_lt note
-    set X := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
-    have : coeGrid i ⊆ X := sorry
-    rfl
-  sorry  calc
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume i := measure_biUnion_le _ ?_ _
-    _ ≤ ∑' i : 𝓛 (X := X) n u,
-      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := sorry
-    _ ≤ volume ↑(𝓘 u) * 2 * 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := sorry
-
   #check tsum_le_tsum
+  sorry
 
-  have : ∀ i ∈ 𝓛 (X := X) n u, true := by
-    intro i hi
-    have : coeGrid i ⊆ ball (c i) (4 * D ^ s i) := Grid_subset_ball
-    have note : (D ^ (-S - s i : ℤ) : ℝ≥0) < 12 := sorry
-    have := small_boundary <| le_of_lt note
-    set X := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
-    have : coeGrid i ⊆ X := sorry
-    rfl
-  sorry
-  sorry
+
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
