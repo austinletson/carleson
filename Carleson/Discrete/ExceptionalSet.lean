@@ -661,9 +661,11 @@ lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt
   exact (edist_triangle ipt ci bpt).trans (add_le_add h h')
 
 
-
 #check tsum_le_tsum
 example {α : Type} (B I : Set α) : ¬ B ⊆ I → ∃ b ∈ B, b ∉ I := not_subset.mp
+
+example {α : Type} [Preorder α] {dist_real : α} {dist_to_nn_real : α} {twelve : α} (hab : dist_real ≤ twelve) (hbc : dist_to_nn_real = dist_real) :
+  dist_to_nn_real ≤ twelve := by exact le_of_eq_of_le hbc hab
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
@@ -696,7 +698,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             have bpt_dist_c_i : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
               defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
               Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-            have trianble_inep : dist ipt bpt ≤ 12 * D ^ s i :=
+            have triangle_ineq : dist ipt bpt ≤ 12 * D ^ s i :=
               calc dist ipt bpt
                 _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
                 _ ≤ 4 * D ^ s i + dist (c i) bpt := by rel [ipt_dist_c_i]
@@ -704,9 +706,28 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 _ ≤ 4 * D ^ s i + 8 * D ^ s i := by rel [bpt_dist_c_i]
                 _ ≤ 12 * D ^ s i := by linarith
 
+            have edist_triangle: edist ipt bpt ≤ 12 * ↑D ^ s i := by
+              rw [edist_dist]
+              rw [ENNReal.ofReal]
+              have dist_nnreal : (dist ipt bpt).toNNReal = dist ipt bpt := by sorry
+              exact exact le_of_eq_of_le dist_nnreal triangle_ineq
+               
+
+               
+                
+
             have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
             
-
+            have ipt_dist_i_u_comp : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ < 12 * D ^ s i := by
+              have exists_ipt_le_bpt : ∃ y ∈ (coeGrid (𝓘 u))ᶜ, edist ipt y < 12 * D ^ s i := by
+                exists bpt
+                constructor
+                · exact bpt_mem_I_u_comp
+                · have : edist ipt bpt < 12 * ↑D ^ s i := by
+                    rw [edist_dist]
+                    
+                  exact this
+              apply EMetric.infEdist_lt_iff.mpr exists_ipt_le_bpt
             sorry 
         sorry
 
