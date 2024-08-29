@@ -687,8 +687,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           · exact i_subset_I_u hipt
           · have : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
             rw [this]
-            have : (12 : ℝ≥0∞) * ↑D ^ s i = (4 * ↑D ^ s i) + (8 * ↑D ^ s i) := by ring
-            rw [this]
             obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
 
             have ipt_dist_c_i : dist ipt (c i) < 4 * D ^ s i := by
@@ -706,11 +704,17 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 _ ≤ 4 * D ^ s i + 8 * D ^ s i := by rel [bpt_dist_c_i]
                 _ ≤ 12 * D ^ s i := by linarith
 
-            have edist_triangle: edist ipt bpt ≤ 12 * ↑D ^ s i := by
+            have edist_triangle: edist ipt bpt ≤ 12 * D ^ s i := by
               rw [edist_dist]
-              rw [ENNReal.ofReal]
-              have dist_nnreal : (dist ipt bpt).toNNReal = dist ipt bpt := by sorry
-              exact exact le_of_eq_of_le dist_nnreal triangle_ineq
+              have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) := sorry
+
+              apply (ENNReal.ofReal_le_ofReal_iff (sorry)).mp at ofReal_ofReal
+              have dist_nnreal : ENNReal.ofReal (dist ipt bpt) ≤  12 * D ^ s i := by 
+                have dist_gt_zero : 0 ≤ dist ipt bpt := by positivity 
+                push_cast
+                simp_all [triangle_ineq, dist_gt_zero]
+                sorry
+              exact dist_nnreal
                
 
                
@@ -718,17 +722,23 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
             have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
             
-            have ipt_dist_i_u_comp : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ < 12 * D ^ s i := by
-              have exists_ipt_le_bpt : ∃ y ∈ (coeGrid (𝓘 u))ᶜ, edist ipt y < 12 * D ^ s i := by
+            have ipt_dist_i_u_comp : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤  12 * D ^ s i := by
+              have exists_ipt_lt_bpt : ∃ y ∈ (coeGrid (𝓘 u))ᶜ, edist ipt y ≤  12 * D ^ s i := by
                 exists bpt
-                constructor
-                · exact bpt_mem_I_u_comp
-                · have : edist ipt bpt < 12 * ↑D ^ s i := by
-                    rw [edist_dist]
-                    
-                  exact this
-              apply EMetric.infEdist_lt_iff.mpr exists_ipt_le_bpt
-            sorry 
+              
+              #check EMetric.infEdist_lt_iff.mpr
+              #check EMetric.infEdist_le_edist_of_mem 
+              
+              have infEdist_le_edist_of_mem_I_u : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤ 12 * D ^ s i := by 
+                obtain ⟨y, hy⟩ := exists_ipt_lt_bpt
+                have infEdist_le_edist_of_mem_I_u : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤ edist ipt y := by 
+                  exact EMetric.infEdist_le_edist_of_mem hy.1
+                calc 
+                  _ ≤ edist ipt y := infEdist_le_edist_of_mem_I_u
+                  _ ≤ 12 * D ^ s i := hy.2
+              exact infEdist_le_edist_of_mem_I_u
+            exact ipt_dist_i_u_comp
+         
         sorry
 
 
