@@ -671,13 +671,10 @@ open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
-  calc
+  set X_u := { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
+  calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
-    _ ≤ ∑' i : 𝓛 (X := X) n u,
-      volume { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} := sorry
-
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X)  := by
-        set X_u := { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)}
+    _ ≤ volume X_u := by
         have vol_i_le_vol_X : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
           intro i hi
           rw [subset_setOf]
@@ -685,25 +682,30 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
           constructor
           · exact i_subset_I_u hipt
-          · have : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
-            rw [this]
-            obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+          · have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
+            rw [exponential_simplification] -- simplify D exponential expression
 
-            have ipt_dist_c_i : dist ipt (c i) < 4 * D ^ s i := by
-              have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
-              simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-                Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-            have bpt_dist_c_i : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
-              defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-              Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-            have triangle_ineq : dist ipt bpt ≤ 12 * D ^ s i :=
+            obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+            
+            -- triangle inequality between ipt, bpt, c i
+            have ipt_bpt_triangle_ineq : dist ipt bpt ≤ 12 * D ^ s i :=
               calc dist ipt bpt
                 _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
-                _ ≤ 4 * D ^ s i + dist (c i) bpt := by rel [ipt_dist_c_i]
+                _ ≤ 4 * D ^ s i + dist (c i) bpt := by 
+                  have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
+                    have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
+                    simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                  rel [dist_ipt_c_i_le]
                 _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw[dist_comm]
-                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by rel [bpt_dist_c_i]
+                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by 
+                    have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
+                      defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                    rel [dist_bpt_c_i_le]
                 _ ≤ 12 * D ^ s i := by linarith
-
+            
+            -- convert from dist to edist
             have edist_triangle: edist ipt bpt ≤ 12 * D ^ s i := by
               rw [edist_dist]
               have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) := sorry
@@ -712,36 +714,17 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               have dist_nnreal : ENNReal.ofReal (dist ipt bpt) ≤  12 * D ^ s i := by 
                 have dist_gt_zero : 0 ≤ dist ipt bpt := by positivity 
                 push_cast
-                simp_all [triangle_ineq, dist_gt_zero]
+                simp_all [ipt_bpt_triangle_ineq, dist_gt_zero]
                 sorry
               exact dist_nnreal
-               
 
-               
-                
-
+            -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
             have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
+            calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
+              _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
+              _ ≤ 12 * D ^ s i := edist_triangle
             
-            have ipt_dist_i_u_comp : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤  12 * D ^ s i := by
-              have exists_ipt_lt_bpt : ∃ y ∈ (coeGrid (𝓘 u))ᶜ, edist ipt y ≤  12 * D ^ s i := by
-                exists bpt
-              
-              #check EMetric.infEdist_lt_iff.mpr
-              #check EMetric.infEdist_le_edist_of_mem 
-              
-              have infEdist_le_edist_of_mem_I_u : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤ 12 * D ^ s i := by 
-                obtain ⟨y, hy⟩ := exists_ipt_lt_bpt
-                have infEdist_le_edist_of_mem_I_u : EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ ≤ edist ipt y := by 
-                  exact EMetric.infEdist_le_edist_of_mem hy.1
-                calc 
-                  _ ≤ edist ipt y := infEdist_le_edist_of_mem_I_u
-                  _ ≤ 12 * D ^ s i := hy.2
-              exact infEdist_le_edist_of_mem_I_u
-            exact ipt_dist_i_u_comp
-         
-        sorry
-
-
+    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by sorry
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := sorry
   #check tsum_le_tsum
   sorry
