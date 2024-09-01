@@ -663,6 +663,8 @@ lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt
 lemma subset_vol_le {space : Type } [MeasureSpace space] {A B : Set space} (h : A ⊆ B) : volume A ≤ volume B := by
   exact measure_mono h
 
+example {k : ℝ }  {l : ℝ} (h : k ≤ l) : ENNReal.ofReal k ≤ ENNReal.ofReal l := by 
+  exact ENNReal.ofReal_le_ofReal h
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
@@ -700,37 +702,66 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           _ ≤ 12 * D ^ s i := by linarith
       
       -- convert from dist to edist
-      have edist_triangle: edist ipt bpt ≤ 12 * D ^ s i := by
-        rw [edist_dist]
-        have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) := sorry
+      have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by sorry
+        /- rw [edist_dist] -/
+        /- have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) :=  -/
+        /-   ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq -/
+        /- exact ofReal_ofReal -/
 
-        apply (ENNReal.ofReal_le_ofReal_iff (sorry)).mp at ofReal_ofReal
-        have dist_nnreal : ENNReal.ofReal (dist ipt bpt) ≤  12 * D ^ s i := by 
-          have dist_gt_zero : 0 ≤ dist ipt bpt := by positivity 
-          simp_all [ipt_bpt_triangle_ineq, dist_gt_zero]
-          sorry
-        exact dist_nnreal
 
       -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
       have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
       calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
         _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
-        _ ≤ 12 * D ^ s i := edist_triangle
+        _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
+        _ ≤ 12 * D ^ s i := by sorry
+            /- change ((12 : ℝ≥0) : ℝ≥0∞) * ((D : ℝ≥0) ^ (s i : ℤ): ℝ≥0∞) -/
+            /- repeat rw [← ENNReal.coe_zpow (show (2 : ℝ≥0) ≠ 0 by norm_num)] -/
+            /- rw_mod_cast [← NNReal.coe_le_coe]; norm_num -/
+
 
   have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
     intro i hi
     have : ↑i ⊆ X_u := i_subset_X_u i hi
     exact measure_mono this
 
+  /- have : ∀ i ∈ 𝓛 (X := X) n u, D ^ (- S - s i) ≤ 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by -/
+  /-   intro i hi -/
+  /-   have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith -/
+  /-   rw [← exponential_simplification] -- simplify D exponential expression -/
 
+  /- have note : ∀ i ∈ 𝓛 (X := X) n u, 12 * (D ^ (s i : ℤ) : ℝ≥0∞) > D ^ (- S : ℤ) := by -/
+  /-   intro i hi -/
+  /-   simp_all -/
+    /- rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩ -/
+    /- have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith -/
+    /- rw [← exponential_simplification] -- simplify D exponential expression -/
+    /- simp_all -/
+
+    
+  have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
+    intro i hi
+    set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)
+    have ht : (D ^ (- S - s i : ℤ) : ℝ≥0∞) ≤ t := by sorry
+    have : volume.real { x ∈ coeGrid i | EMetric.infEdist x (coeGrid i)ᶜ ≤ t * (D ^ (s i):ℝ≥0∞)} ≤ (2 : ℝ≥0∞) * t ^ κ * (volume.real (coeGrid i) : ℝ≥0∞):= by sorry
+      GridStructure.small_boundary ht
+    sorry
+
+  have small_boundary_observation_no_for_all : volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := 
+    by sorry
+
+  #check 𝓘 u
     
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by sorry
-    _ = C5_2_9 X n * volume (𝓘 u : Set X) := sorry
+    _ ≤ volume X_u := by sorry
+    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := small_boundary_observation_no_for_all
+    _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
 
+def C5_2_9 [ProofData a q K σ₁ σ₂ F G] (n : ℕ) : ℝ≥0 := 
+  D ^ (1 - κ * Z * (n + 1))
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
     C5_2_9 X n * 2 ^ (9 * a - j : ℤ) * 2 ^ (n + k + 3) * volume G :=
