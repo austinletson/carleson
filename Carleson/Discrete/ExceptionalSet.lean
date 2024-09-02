@@ -741,9 +741,19 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     
   have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
     intro i hi
-    set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)
-    have ht : (D ^ (- S - s i : ℤ) : ℝ≥0∞) ≤ t := by sorry
-    have : volume.real { x ∈ coeGrid i | EMetric.infEdist x (coeGrid i)ᶜ ≤ t * (D ^ (s i):ℝ≥0∞)} ≤ (2 : ℝ≥0∞) * t ^ κ * (volume.real (coeGrid i) : ℝ≥0∞):= by sorry
+    set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
+    rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
+    have small_boundary_h : t * (D ^ (𝔰 u)) ≤ D ^ (- S : ℤ) := by 
+      rw [ht]
+      have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
+        exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
+      have times_12 : (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * ↑D ^ (-↑Z * (↑n + 1) - 1 + 𝔰 u) := by
+      rw [← z_pow_add_D]
+      have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
+      rw [exponential_simplification] -- simplify D exponential expression
+
+
+    have : volume.real { x ∈ coeGrid i | EMetric.infEdist x (coeGrid i)ᶜ ≤ t * (D ^ (s i):ℝ≥0∞)} ≤ (2 : ℝ≥0∞) * t ^ κ * (volume.real (coeGrid i) : ℝ≥0∞):= by
       GridStructure.small_boundary ht
     sorry
 
@@ -759,6 +769,11 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     _ ≤ volume X_u := by sorry
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := small_boundary_observation_no_for_all
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
+
+lemma exponent_add {a : ℝ≥0∞} {b c : ℤ} (hx : a ≠ 0) (h'x : a ≠ ⊤) :  a ^ (b + c) = a ^ b * a ^ c := by exact ENNReal.zpow_add hx h'x b c
+
+#check ENNReal.zpow_add
+
 
 def C5_2_9 [ProofData a q K σ₁ σ₂ F G] (n : ℕ) : ℝ≥0 := 
   D ^ (1 - κ * Z * (n + 1))
