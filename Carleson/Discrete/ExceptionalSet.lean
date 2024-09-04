@@ -743,7 +743,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     intro i hi
     set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
     rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
-    have small_boundary_h : t * (D ^ (𝔰 u)) ≤ D ^ (- S : ℤ) := by 
+    have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by 
       rw [ht]
       have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
         exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
@@ -761,8 +761,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
       have bound_i : -S ≤ s i ∧ s i ≤ S := mem_Icc.mp (range_s_subset ⟨i, rfl⟩)
       have bound_i_neg_S : -S ≤ s i := bound_i.1
-      have : (D ^ (- S : ℤ) : ℝ) ≤ (D ^ (s i : ℤ) : ℝ) := by
-        exact zpow_le_of_le (one_le_D) bound_i_neg_S
+      have : (D ^ (- S : ℤ) : ℝ≥0∞) ≤ (D ^ (s i : ℤ) : ℝ≥0∞) := by
+        have one_le_ennreal_D : 1 ≤ (D : ℝ≥0∞) := by
+          have h1 : (1 : ℝ≥0∞).toReal ≤ (D : ℝ≥0∞).toReal := by exact one_le_D
+          rw [ENNReal.toReal_le_toReal (by simp) (by simp) ] at h1
+          exact h1
+        exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
+       
       rw [exponential_simplification] -- simplify D exponential expression
 
 
@@ -788,7 +793,8 @@ lemma exponent_add {a : ℝ≥0∞} {b c : ℤ} (hx : a ≠ 0) (h'x : a ≠ ⊤)
 
 #check ENNReal.zpow_add
 
-lemma test{a b c : ℚ} (h1 : 1 ≤ a) (h2 : a * b ≤ c) : b ≤ c := by hint
+lemma test{a b c : ℚ} (h1 : 1 ≤ a) (h2 : b ≤ c) :  b ≤ a * c:= by rel [h1]
+  
 
 def C5_2_9 [ProofData a q K σ₁ σ₂ F G] (n : ℕ) : ℝ≥0 := 
   D ^ (1 - κ * Z * (n + 1))
