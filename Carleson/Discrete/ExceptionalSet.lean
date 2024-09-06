@@ -650,11 +650,12 @@ lemma tree_count :
   norm_cast
 
 
-
 lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt ci ≤ 4) (h' : edist ci bpt ≤ 8) : edist ipt bpt ≤ 12 := by
   have : (12: ENNReal) = 4 + 8 := by norm_num
   rw [this]
   exact (edist_triangle ipt ci bpt).trans (add_le_add h h')
+
+/- lemma d (a : ℝ) : ENNReal.ofReal (a) = (a : ℝ≥0∞) := by sorry -/
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
@@ -699,23 +700,34 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 _ ≤ 12 * D ^ s i := by linarith
             
             -- convert from dist to edist
-            have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by sorry
-              /- rw [edist_dist] -/
-              /- have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) :=  -/
-              /-   ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq -/
-              /- exact ofReal_ofReal -/
-
+            have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by
+              rw [edist_dist]
+              have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) := 
+                ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq
+              exact ofReal_ofReal
 
             -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
             have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
             calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
               _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
               _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
-              _ ≤ 12 * D ^ s i := by sorry
-                  /- change ((12 : ℝ≥0) : ℝ≥0∞) * ((D : ℝ≥0) ^ (s i : ℤ): ℝ≥0∞) -/
-                  /- repeat rw [← ENNReal.coe_zpow (show (2 : ℝ≥0) ≠ 0 by norm_num)] -/
-                  /- rw_mod_cast [← NNReal.coe_le_coe]; norm_num -/
-
+              _ ≤ 12 * D ^ s i := by
+                rw [ENNReal.ofReal]
+                set D_s_i := (D ^ s i : ℝ) with hD_s_i
+                have D_pos : 0 ≤ D_s_i := by sorry
+                conv =>
+                  lhs
+                  simp [ENNReal.coe_toNNReal]
+                  norm_cast
+                lift D_s_i to NNReal using D_pos with k hk
+                norm_cast
+                conv =>
+                  lhs
+                  rw [Real.toNNReal_coe]
+                have k_eq_D_s_i : k = D ^ s i := by 
+                  simp [hD_s_i]
+                rw [k_eq_D_s_i]
+                norm_num
 
         have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
           intro i hi
@@ -731,48 +743,37 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
           have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by 
             rw [ht]
-            have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
-              exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
             have times_12 : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) := by
+              have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
+                exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
               rw [z_pow_add_D]
               ring
             rw [times_12]
-            have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
             have rearrangement : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by 
+              have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
               rw [exp_rearrangement]
             rw [rearrangement]
             have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
             rw [s_i_rearrangement]
             
-            have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
-            have bound_i : -S ≤ s i ∧ s i ≤ S := mem_Icc.mp (range_s_subset ⟨i, rfl⟩)
-            have bound_i_neg_S : -S ≤ s i := bound_i.1
-            have : (D ^ (- S : ℤ) : ℝ≥0∞) ≤ (D ^ (s i : ℤ) : ℝ≥0∞) := by
+            have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
+            have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0∞) ≤ (D ^ (s i : ℤ) : ℝ≥0∞) := by
               have one_le_ennreal_D : 1 ≤ (D : ℝ≥0∞) := by
                 have h1 : (1 : ℝ≥0∞).toReal ≤ (D : ℝ≥0∞).toReal := by exact one_le_D
                 rw [ENNReal.toReal_le_toReal (by simp) (by simp) ] at h1
                 exact h1
               exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
-            
-            rw [exponential_simplification] -- simplify D exponential expression
+            apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
+          have ht' : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞)  ≤ t := by sorry
+          have t_enn_le_t_nn := ENNReal.coe_le_coe.mp ht'
+          #check GridStructure.small_boundary ht'
+          /- have remove_t : t * D ^ GridStructure.s (𝓘 u) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry -/
+        sorry
 
-
-
-          have : volume.real { x ∈ coeGrid i | EMetric.infEdist x (coeGrid i)ᶜ ≤ t * (D ^ (s i):ℝ≥0∞)} ≤ (2 : ℝ≥0∞) * t ^ κ * (volume.real (coeGrid i) : ℝ≥0∞):= by
-            GridStructure.small_boundary ht
-          sorry
-
-        have small_boundary_observation_no_for_all : volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := 
-          by sorry
-      exact small_boundary_observation_no_for_all
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
 
 
 
-lemma test{a b c : ℤ} (h1 : 1 ≤ a) (h2 : b ≤ c) :  b ≤ a * c:= by 
-  calc 
-    b ≤ c := h2
-    _ ≤ a * c := mul_le_mul _ _ _ _
     
   
 
