@@ -711,22 +711,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
               _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
               _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
-              _ ≤ 12 * D ^ s i := by
+              _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
                 rw [ENNReal.ofReal]
-                set D_s_i := (D ^ s i : ℝ) with hD_s_i
-                have D_pos : 0 ≤ D_s_i := by sorry
-                conv =>
-                  lhs
-                  simp [ENNReal.coe_toNNReal]
-                  norm_cast
-                lift D_s_i to NNReal using D_pos with k hk
+                have D_pos : 0 ≤ 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
+                lift 12 * (D ^ s i : ℝ) to NNReal using D_pos with k hk
                 norm_cast
                 conv =>
                   lhs
                   rw [Real.toNNReal_coe]
-                have k_eq_D_s_i : k = D ^ s i := by 
-                  simp [hD_s_i]
-                rw [k_eq_D_s_i]
+                #check hk
+                push_cast at hk
                 norm_num
 
         have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
