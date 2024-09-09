@@ -755,17 +755,14 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           have ht'' : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0)  ≤ tr := by sorry
           have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) :=
             GridStructure.small_boundary ht''
-          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by sorry
-
-            -- rw [htr]
-            -- have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
-            --   exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
-            -- have pow_add_D : ((12 * D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) * (D ^ s (𝓘 u) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) := by sorry
-            -- rw [pow_add_D]
-            -- have rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) = 12 * (D ^ (s (𝓘 u) - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
-            -- rw [rearrangment]
-            -- have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-            -- rw [← s_u_eq_s_𝓘_u]
+          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by
+            rw [htr]
+            have pow_add_D : ((12 * D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) * (D ^ s (𝓘 u) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) := by sorry
+            rw [pow_add_D]
+            have rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) = 12 * (D ^ (s (𝓘 u) - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
+            rw [rearrangment]
+            have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+            rw [← s_u_eq_s_𝓘_u]
           rw [← X_u_eq_set] at small_boundary_I_u
           rw [htr] at small_boundary_I_u
           sorry
