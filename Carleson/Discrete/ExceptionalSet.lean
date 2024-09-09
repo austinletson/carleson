@@ -650,25 +650,16 @@ lemma tree_count :
   norm_cast
 
 
-lemma foo {Space: Type} [EMetricSpace Space] (ipt ci bpt : Space) (h : edist ipt ci ≤ 4) (h' : edist ci bpt ≤ 8) : edist ipt bpt ≤ 12 := by
-  have : (12: ENNReal) = 4 + 8 := by norm_num
-  rw [this]
-  exact (edist_triangle ipt ci bpt).trans (add_le_add h h')
-
-/- lemma d (a : ℝ) : ENNReal.ofReal (a) = (a : ℝ≥0∞) := by sorry -/
-
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
-  set X_u := { x ∈ ↑(𝓘 u) | EMetric.infEdist x (↑(𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
+  set X_u := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
 
-
-    
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by 
+    _ ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by
         have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
           intro i hi
           rw [subset_setOf]
@@ -680,29 +671,29 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             rw [exponential_simplification] -- simplify D exponential expression
 
             obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
-            
+
             -- triangle inequality between ipt, bpt, c i
-            have ipt_bpt_triangle_ineq : dist ipt bpt ≤ 12 * D ^ s i :=
+            have ipt_bpt_triangle_ineq : dist ipt bpt ≤ (12 * D ^ s i : ℝ) :=
               calc dist ipt bpt
                 _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
-                _ ≤ 4 * D ^ s i + dist (c i) bpt := by 
+                _ ≤ 4 * D ^ s i + dist (c i) bpt := by
                   have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
                     have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
                     simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
                       Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
                   rel [dist_ipt_c_i_le]
                 _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw[dist_comm]
-                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by 
+                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by
                     have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
                       defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
                       Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
                     rel [dist_bpt_c_i_le]
                 _ ≤ 12 * D ^ s i := by linarith
-            
+
             -- convert from dist to edist
             have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by
               rw [edist_dist]
-              have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) := 
+              have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) :=
                 ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq
               exact ofReal_ofReal
 
@@ -711,17 +702,19 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
               _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
               _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
+              _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := by
+                  have D_pos : 0 < (D : ℝ) := by simp [one_le_D]
+                  have D_s_i_pos : 0 < (D ^ (s i : ℤ) : ℝ) := zpow_pos_of_pos D_pos (s i)
+                  have D_pos : 0 < 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
+                  apply le_of_eq
+                  exact congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
+                    simpa using zpow_nonneg (by simp [D_pos]) (s i)
               _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
-                rw [ENNReal.ofReal]
-                have D_pos : 0 ≤ 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
-                lift 12 * (D ^ s i : ℝ) to NNReal using D_pos with k hk
-                norm_cast
-                conv =>
-                  lhs
-                  rw [Real.toNNReal_coe]
-                #check hk
-                push_cast at hk
-                norm_num
+                  push_cast
+                  rw [ENNReal.coe_zpow]
+                  · push_cast
+                    rfl
+                  · simp [one_le_D]
 
         have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
           intro i hi
@@ -730,12 +723,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
     _ ≤ volume X_u := by sorry
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
-      
+
         have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
           set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
+          set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
           rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
-          have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by 
+          have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by
             rw [ht]
             have times_12 : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) := by
               have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
@@ -743,13 +737,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               rw [z_pow_add_D]
               ring
             rw [times_12]
-            have rearrangement : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by 
+            have rearrangement : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by
               have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
               rw [exp_rearrangement]
             rw [rearrangement]
             have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
             rw [s_i_rearrangement]
-            
+
             have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
             have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0∞) ≤ (D ^ (s i : ℤ) : ℝ≥0∞) := by
               have one_le_ennreal_D : 1 ≤ (D : ℝ≥0∞) := by
@@ -758,18 +752,35 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 exact h1
               exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
             apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-          have ht' : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞)  ≤ t := by sorry
-          have t_enn_le_t_nn := ENNReal.coe_le_coe.mp ht'
-          #check GridStructure.small_boundary ht'
-          /- have remove_t : t * D ^ GridStructure.s (𝓘 u) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry -/
+          have ht'' : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0)  ≤ tr := by sorry
+          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) :=
+            GridStructure.small_boundary ht''
+          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by sorry
+
+            -- rw [htr]
+            -- have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
+            --   exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
+            -- have pow_add_D : ((12 * D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) * (D ^ s (𝓘 u) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) := by sorry
+            -- rw [pow_add_D]
+            -- have rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) = 12 * (D ^ (s (𝓘 u) - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
+            -- rw [rearrangment]
+            -- have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+            -- rw [← s_u_eq_s_𝓘_u]
+          rw [← X_u_eq_set] at small_boundary_I_u
+          rw [htr] at small_boundary_I_u
+          sorry
+          -- exact small_boundary_I_u
+
+          -- have remove_t : t * D ^ GridStructure.s (𝓘 u) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
+          -- have t_enn_le_t_nn := ENNReal.coe_le_coe.mp ht'
         sorry
 
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
 
 
 
-    
-  
+
+
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
