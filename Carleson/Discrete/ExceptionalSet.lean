@@ -705,10 +705,10 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := by
                   have D_pos : 0 < (D : ℝ) := by simp [one_le_D]
                   have D_s_i_pos : 0 < (D ^ (s i : ℤ) : ℝ) := zpow_pos_of_pos D_pos (s i)
-                  have D_pos : 0 < 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
+                  have twelve_D_s_i_pos : 0 < 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
                   apply le_of_eq
                   exact congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
-                    simpa using zpow_nonneg (by simp [D_pos]) (s i)
+                    simpa using zpow_nonneg (by simp [twelve_D_s_i_pos]) (s i)
               _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
                   push_cast
                   rw [ENNReal.coe_zpow]
@@ -728,7 +728,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           intro i hi
           set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
           set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
-          rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
+          rcases hi with ⟨_, s_i_eq_stuff, _⟩
           have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by
             rw [ht]
             have times_12 : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) := by
@@ -752,19 +752,26 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 exact h1
               exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
             apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-          have ht'' : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0)  ≤ tr := by sorry
-          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) :=
-            GridStructure.small_boundary ht''
-          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by
-            rw [htr]
-            have pow_add_D : ((12 * D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) * (D ^ s (𝓘 u) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) := by sorry
+          have ht_le_ennr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞) ≤ t := by sorry
+          have t_ne_top : t ≠ ⊤ := by sorry
+          have ht_le_nnr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal ≤ t.toNNReal := (ENNReal.toNNReal_le_toNNReal (by sorry) t_ne_top).mpr ht_le_ennr
+          have ennreal_to_nnreal : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal = (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0) := by sorry
+
+          rw [ennreal_to_nnreal] at ht_le_nnr
+          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ t.toNNReal * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * t.toNNReal ^ κ * volume.real (coeGrid (𝓘 u)) :=
+            GridStructure.small_boundary ht_le_nnr
+          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ (t.toNNReal :  ℝ≥0∞) * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by
+            have coe_same : (t.toNNReal :  ℝ≥0∞) = t := by simp [t_ne_top]
+            rw [coe_same]
+            rw [ht]
+            have pow_add_D : (12 * D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) * (D ^ s (𝓘 u) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) := by sorry
             rw [pow_add_D]
             have rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + s (𝓘 u) : ℤ) : ℝ≥0∞) = 12 * (D ^ (s (𝓘 u) - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
             rw [rearrangment]
             have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
             rw [← s_u_eq_s_𝓘_u]
           rw [← X_u_eq_set] at small_boundary_I_u
-          rw [htr] at small_boundary_I_u
+          rw [ht] at small_boundary_I_u
           sorry
           -- exact small_boundary_I_u
 
