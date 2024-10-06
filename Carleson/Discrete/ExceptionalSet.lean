@@ -721,7 +721,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           have : ↑i ⊆ X_u := i_subset_X_u i hi
           exact measure_mono this
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
-    _ ≤ volume X_u := by sorry
+    _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
 
         -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
@@ -762,13 +762,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
             -- need some power algegra to finish this off
             sorry
-          
-          have t_ne_top : t ≠ ⊤ := by sorry
+
+          have t_ne_top : t ≠ ⊤ := by sorry -- this shouldn't be too hard and I am not positive we will need it in the end
 
           -- small boundary propery for 𝓘 u
           have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ t.toNNReal * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * t.toNNReal ^ κ * volume.real (coeGrid (𝓘 u)) := by
             
-            -- here we are trying to get the small_boundary 
+            -- here we are trying to get the small_boundary_h into NNReal for GridStructure.small_boundary
             have ht_le_nnr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal ≤ t.toNNReal := (ENNReal.toNNReal_le_toNNReal (by sorry) t_ne_top).mpr small_boundary_h
             have ennreal_to_nnreal : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal = (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0) := by sorry
             rw [ennreal_to_nnreal] at ht_le_nnr
@@ -790,9 +790,12 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           -- this exact should work after some NNReal coercions
           -- exact small_boundary_I_u
           sorry
+
+        -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
+        -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
         sorry
 
-    _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
+    _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry -- this sorry is for the "Choosing the right k and D from Erics PDF"
 
 
 
