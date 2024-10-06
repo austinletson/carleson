@@ -724,11 +724,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     _ ≤ volume X_u := by sorry
     _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
 
+        -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
         have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
+          -- choose t for small boundary property
           set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
-          set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
+          -- not sure if it is easier to prove with t as a NNReal instead of ENNReal
+          /- set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr -/
           rcases hi with ⟨_, s_i_eq_stuff, _⟩
+
+          -- prove assumption for small boundary property
           have small_boundary_h : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by
             rw [ht]
             have times_12 : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) := by
@@ -752,14 +757,20 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 exact h1
               exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
             apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-          have ht_le_ennr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞) ≤ t := by sorry
-          have t_ne_top : t ≠ ⊤ := by sorry
-          have ht_le_nnr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal ≤ t.toNNReal := (ENNReal.toNNReal_le_toNNReal (by sorry) t_ne_top).mpr ht_le_ennr
-          have ennreal_to_nnreal : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal = (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0) := by sorry
 
-          rw [ennreal_to_nnreal] at ht_le_nnr
-          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ t.toNNReal * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * t.toNNReal ^ κ * volume.real (coeGrid (𝓘 u)) :=
-            GridStructure.small_boundary ht_le_nnr
+          have t_ne_top : t ≠ ⊤ := by sorry
+
+          -- small boundary propery for 𝓘 u
+          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ t.toNNReal * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * t.toNNReal ^ κ * volume.real (coeGrid (𝓘 u)) := by
+            
+            have ht_le_ennr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞) ≤ t := by sorry
+            have ht_le_nnr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal ≤ t.toNNReal := (ENNReal.toNNReal_le_toNNReal (by sorry) t_ne_top).mpr ht_le_ennr
+            have ennreal_to_nnreal : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal = (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0) := by sorry
+
+            rw [ennreal_to_nnreal] at ht_le_nnr
+            exact GridStructure.small_boundary ht_le_nnr
+
+
           have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ (t.toNNReal :  ℝ≥0∞) * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by
             have coe_same : (t.toNNReal :  ℝ≥0∞) = t := by simp [t_ne_top]
             rw [coe_same]
@@ -772,11 +783,9 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             rw [← s_u_eq_s_𝓘_u]
           rw [← X_u_eq_set] at small_boundary_I_u
           rw [ht] at small_boundary_I_u
-          sorry
+          -- this exact should work after some NNReal coercions
           -- exact small_boundary_I_u
-
-          -- have remove_t : t * D ^ GridStructure.s (𝓘 u) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry
-          -- have t_enn_le_t_nn := ENNReal.coe_le_coe.mp ht'
+          sorry
         sorry
 
     _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry
