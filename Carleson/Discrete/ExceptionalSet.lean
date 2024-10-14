@@ -728,60 +728,63 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
           -- choose t for small boundary property
-          set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht
+          /- set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht -/
           -- not sure if it is easier to prove with t as a NNReal instead of ENNReal
-          /- set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr -/
+          set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
           rcases hi with ⟨_, s_i_eq_stuff, _⟩
 
           -- algebra useful in multiple steps of the proof
-          have D_pow_add_algebra : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) := by
-            have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)  * (D ^ (𝔰 u : ℤ) : ℝ≥0∞)  := by
-              exact ENNReal.zpow_add (show (D : ℝ≥0∞) ≠ 0 by norm_num) (show (D : ℝ≥0∞) ≠ ⊤ by norm_num)  _ _
+          have D_pow_add_algebra : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) := by
+            have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0)  := by
+              exact zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) _ _
             rw [z_pow_add_D]
             ring
-          have D_pow_rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0∞) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by
+          have D_pow_rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0) := by
             have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
             rw [exp_rearrangement]
 
           -- prove assumption for small boundary property
-          have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ t := by
-            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ t * (D ^ (𝔰 u)) := by
-              rw [ht]
+          have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ tr := by
+            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * (D ^ (𝔰 u)) := by
+              rw [htr]
               rw [D_pow_add_algebra]
               rw [D_pow_rearrangment]
               have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
               rw [s_i_rearrangement]
 
               have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
-              have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0∞) ≤ (D ^ (s i : ℤ) : ℝ≥0∞) := by
-                have one_le_ennreal_D : 1 ≤ (D : ℝ≥0∞) := by
-                  have h1 : (1 : ℝ≥0∞).toReal ≤ (D : ℝ≥0∞).toReal := by exact one_le_D
-                  rw [ENNReal.toReal_le_toReal (by simp) (by simp) ] at h1
+              have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
+                have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
+                  have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
+                  -- Generated with aesop, could be improved
+                  rename_i left right
+                  simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
+                    Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
+                    pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
+                  obtain ⟨left, right_1⟩ := left
                   exact h1
-                exact ENNReal.zpow_le_of_le (one_le_ennreal_D) bound_i_neg_S
+                exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
               apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
             -- need some power algegra to finish this off
             sorry
-
-          have t_ne_top : t ≠ ⊤ := by sorry -- this shouldn't be too hard and I am not positive we will need it in the end
+          
+          -- only needed for ENNReal t
+          /- have t_ne_top : t ≠ ⊤ := by sorry -- this shouldn't be too hard and I am not positive we will need it in the end -/
 
           -- small boundary propery for 𝓘 u
-          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ t.toNNReal * (D ^ (s (𝓘 u)):ℝ≥0∞)} ≤ 2 * t.toNNReal ^ κ * volume.real (coeGrid (𝓘 u)) := by
+          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) := by
             
-            -- here we are trying to get the small_boundary_h into NNReal for GridStructure.small_boundary
-            have ht_le_nnr : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal ≤ t.toNNReal := (ENNReal.toNNReal_le_toNNReal (by sorry) t_ne_top).mpr small_boundary_h
-            have ennreal_to_nnreal : (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0∞).toNNReal = (D ^ ((- S - s (𝓘 u)) : ℤ) : ℝ≥0) := by sorry
-            rw [ennreal_to_nnreal] at ht_le_nnr
-
             -- use GridStructure.small_boundary
-            exact GridStructure.small_boundary ht_le_nnr
+            exact GridStructure.small_boundary small_boundary_h
 
 
-          rw [ht] at small_boundary_I_u
-          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ (t.toNNReal :  ℝ≥0∞) * (D ^ (s (𝓘 u)):ℝ≥0∞)} := by
-            have coe_same : (t.toNNReal :  ℝ≥0∞) = t := by simp [t_ne_top]
-            rw [coe_same]
-            rw [ht]
+          rw [htr] at small_boundary_I_u
+          have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+          rw [← s_u_eq_s_𝓘_u] at small_boundary_I_u
+          rw [D_pow_add_algebra] at small_boundary_I_u
+          rw [D_pow_rearrangment] at small_boundary_I_u
+          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
+            rw [htr]
             have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
             rw [← s_u_eq_s_𝓘_u]
             rw [D_pow_add_algebra]
@@ -799,7 +802,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
 
 
-
+#synth LinearOrderedSemifield NNReal
 
 
 lemma third_exception_aux :
