@@ -722,87 +722,20 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           exact measure_mono this
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
     _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
-
-        -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
-        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
-          intro i hi
-          -- choose t for small boundary property
-          /- set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht -/
-          -- not sure if it is easier to prove with t as a NNReal instead of ENNReal
-          set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
-          rcases hi with ⟨_, s_i_eq_stuff, _⟩
-
-          -- algebra useful in multiple steps of the proof
-          have D_pow_add_algebra : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) := by
-            have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0)  := by
-              exact zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) _ _
-            rw [z_pow_add_D]
-            ring
-          have D_pow_rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0) := by
-            have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
-            rw [exp_rearrangement]
-
-          -- prove assumption for small boundary property
-          have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ tr := by
-            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * (D ^ (𝔰 u)) := by
-              rw [htr]
-              rw [D_pow_add_algebra]
-              rw [D_pow_rearrangment]
-              have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
-              rw [s_i_rearrangement]
-
-              have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
-              have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
-                have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
-                  have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
-                  -- Generated with aesop, could be improved
-                  rename_i left right
-                  simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
-                    Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
-                    pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
-                  obtain ⟨left, right_1⟩ := left
-                  exact h1
-                exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
-              apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-            -- need some power algegra to finish this off
-            sorry
-          
-          -- only needed for ENNReal t
-          /- have t_ne_top : t ≠ ⊤ := by sorry -- this shouldn't be too hard and I am not positive we will need it in the end -/
-
-          -- small boundary propery for 𝓘 u
-          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) := by
-            
-            -- use GridStructure.small_boundary
-            exact GridStructure.small_boundary small_boundary_h
-
-
-          rw [htr] at small_boundary_I_u
-          have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-          rw [← s_u_eq_s_𝓘_u] at small_boundary_I_u
-          rw [D_pow_add_algebra] at small_boundary_I_u
-          rw [D_pow_rearrangment] at small_boundary_I_u
-          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
-            rw [htr]
-            have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-            rw [← s_u_eq_s_𝓘_u]
-            rw [D_pow_add_algebra]
-            rw [D_pow_rearrangment]
-          rw [← X_u_eq_set] at small_boundary_I_u
-          -- this exact should work after some NNReal coercions
-          -- exact small_boundary_I_u
-          sorry
-
-        -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
-        -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
-        sorry
-
-    _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry -- this sorry is for the "Choosing the right k and D from Erics PDF"
-
-
-
-#synth LinearOrderedSemifield NNReal
+    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by sorry -- almost done in nnreal-exp branch
+    _ ≤ (2 * 12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
+    _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
+      /- rw [C5_2_9] -/
+      have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
+        have k_lt_1 : κ ≤ 1 := by sorry
+        have twelve_le_D : 12 ≤ D := by sorry
+        have two_le_D : 2 ≤ D := by sorry
+        have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by sorry
+        have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by sorry
+        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by sorry
+        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by sorry
+        exact simplify_exponenets
+      sorry -- apply coeff_ineq with some ennreal stuff
 
 
 lemma third_exception_aux :
