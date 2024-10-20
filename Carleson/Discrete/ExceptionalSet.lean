@@ -728,15 +728,37 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       /- rw [C5_2_9] -/
       have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
         have k_lt_1 : κ ≤ 1 := by sorry
-        have twelve_le_D : 12 ≤ D := by sorry
-        have two_le_D : 2 ≤ D := by sorry
-        have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by sorry
-        have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by sorry
+        have twelve_le_D : (12 : ℝ≥0) ≤ D := by sorry
+        have two_le_D : (2 : ℝ≥0) ≤ D := by sorry
+        have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
+          have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
+            apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
+            apply NNReal.rpow_le_one ?_ ?_
+            have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
+            apply div_le_one_of_le twelve_le_D
+            simp [D_pos]
+            apply κ_nonneg
+            simp [MulLECancellable]
+          exact le_trans this two_le_D
+        have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
+          rw [← inv_mul_eq_div] at two_time_twelve_over_D_to_the_k_le_D
+          rw [NNReal.mul_rpow] at two_time_twelve_over_D_to_the_k_le_D
+          rw [NNReal.inv_rpow] at two_time_twelve_over_D_to_the_k_le_D
+          rw [← NNReal.rpow_neg] at two_time_twelve_over_D_to_the_k_le_D
+          nth_rewrite 2 [mul_comm] at two_time_twelve_over_D_to_the_k_le_D
+          rw [← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
+          exact two_time_twelve_over_D_to_the_k_le_D
         have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by sorry
         have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by sorry
         exact simplify_exponenets
       sorry -- apply coeff_ineq with some ennreal stuff
 
+#leansearch "NNReal a⁻¹ ^ b = a^ (-b)?" -- 
+
+
+#synth OrderedSemiring NNReal
+
+#check   MulLECancellable.le_mul_iff_one_le_right
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
