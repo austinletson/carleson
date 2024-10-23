@@ -748,15 +748,21 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           nth_rewrite 2 [mul_comm] at two_time_twelve_over_D_to_the_k_le_D
           rw [← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
           exact two_time_twelve_over_D_to_the_k_le_D
-        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by sorry
+        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+          apply mul_le_mul_of_nonneg_right two_times_twelve_k_D_minus_k_le_D ?_
+          positivity
+        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-1*κ)  * D ^ (-1* κ  * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+          rw [← neg_eq_neg_one_mul]
+          exact mul_by_D_to_the_k_Z
         have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by sorry
         exact simplify_exponenets
       sorry -- apply coeff_ineq with some ennreal stuff
 
-#leansearch "NNReal a⁻¹ ^ b = a^ (-b)?" -- 
+#leansearch "neg_eq_neg_one_mul?" -- 
+#check mul_le_mul_right₀
 
 
-#synth OrderedSemiring NNReal
+#synth HasDistribNeg  Real 
 
 #check   MulLECancellable.le_mul_iff_one_le_right
 
