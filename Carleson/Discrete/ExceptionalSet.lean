@@ -754,21 +754,33 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-1*κ)  * D ^ (-1* κ  * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
           rw [← neg_eq_neg_one_mul]
           exact mul_by_D_to_the_k_Z
-        have rearrange_exponents : 2 * 12 ^ κ * ((D ^ (-(1 : ℝ))) ^ κ : ℝ≥0) * (( ( D ^ (-(1 : ℝ) * Z * (n + 1)) ) ) ^ κ : ℝ≥0) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by
+        have rearrange_exponents : 2 * (12 : ℝ≥0) ^ κ * (D ^ (-(1 : ℝ))) ^ κ * (D ^ (-(1 : ℝ) * Z * (n + 1)) : ℝ≥0) ^ κ ≤ (D : ℝ≥0) ^ (1 : ℝ) * D ^ (-κ * Z * (n + 1)) := by
           have : (-1* κ  * Z * (n + 1) : ℝ) = (-1 * Z * (n + 1)) * κ := by ring
           rw [this] at mul_by_D_to_the_k_Z
           rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
           rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
+          rw [NNReal.rpow_one]
           exact mul_by_D_to_the_k_Z
-        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by sorry
+        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
+          rw [mul_assoc] at rearrange_exponents
+          rw [← NNReal.mul_rpow] at rearrange_exponents
+          rw [mul_assoc] at rearrange_exponents
+          rw [← NNReal.mul_rpow] at rearrange_exponents
+          rw [← NNReal.rpow_add (by sorry)] at rearrange_exponents
+          rw [← NNReal.rpow_add (by sorry)] at rearrange_exponents
+          rw [add_comm] at rearrange_exponents
+          rw [← neg_eq_neg_one_mul] at rearrange_exponents
+          rw [← Ring.sub_eq_add_neg] at rearrange_exponents
+          rw [← Ring.sub_eq_add_neg] at rearrange_exponents
+          exact rearrange_exponents
         exact simplify_exponenets
       sorry -- apply coeff_ineq with some ennreal stuff
 
-#leansearch "NNReal a ^ (c * b) = a ^ c ^ b?" -- 
+#leansearch "Ring a + (-b) = a - b?" -- 
 #check mul_le_mul_right₀
 
 
-#synth HasDistribNeg  Real 
+#synth CommMonoid NNReal 
 
 #check   MulLECancellable.le_mul_iff_one_le_right
 
