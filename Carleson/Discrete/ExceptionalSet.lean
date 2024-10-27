@@ -722,24 +722,35 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           exact measure_mono this
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
     _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by sorry -- almost done in nnreal-exp branch
-    _ ≤ (2 * 12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
+    _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℝ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by sorry -- almost done in nnreal-exp branch
+    _ ≤ (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
     _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
       /- rw [C5_2_9] -/
       have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
-        have k_lt_1 : κ ≤ 1 := by sorry
-        have twelve_le_D : (12 : ℝ≥0) ≤ D := by sorry
-        have two_le_D : (2 : ℝ≥0) ≤ D := by sorry
+        have twelve_le_D : 12 ≤ D := by 
+          have foo : ProofData a q K σ₁ σ₂ F G := by infer_instance
+          have : 4 ≤ a := foo.four_le_a
+          simp [defaultD]
+          have : 2 ^ (100) ≤ 2^ (100 * a ^2) := by 
+            apply (Nat.pow_le_pow_iff_right ?_).mpr
+            simp
+            nlinarith
+            norm_num
+          nlinarith
+        have twelve_le_D_nnreal : (12 : ℝ≥0) ≤ D := by
+          norm_cast
+        have two_le_D : 2 ≤ D := by linarith
+        have two_le_D_nnreal : (2 : ℝ≥0) ≤ D := by norm_cast
         have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
           have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
             apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
             apply NNReal.rpow_le_one ?_ ?_
             have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
-            apply div_le_one_of_le twelve_le_D
+            apply div_le_one_of_le twelve_le_D_nnreal
             simp [D_pos]
             apply κ_nonneg
             simp [MulLECancellable]
-          exact le_trans this two_le_D
+          exact le_trans this two_le_D_nnreal
         have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
           rw [← inv_mul_eq_div] at two_time_twelve_over_D_to_the_k_le_D
           rw [NNReal.mul_rpow] at two_time_twelve_over_D_to_the_k_le_D
@@ -766,8 +777,8 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rw [← NNReal.mul_rpow] at rearrange_exponents
           rw [mul_assoc] at rearrange_exponents
           rw [← NNReal.mul_rpow] at rearrange_exponents
-          rw [← NNReal.rpow_add (by sorry)] at rearrange_exponents
-          rw [← NNReal.rpow_add (by sorry)] at rearrange_exponents
+          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
+          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
           rw [add_comm] at rearrange_exponents
           rw [← neg_eq_neg_one_mul] at rearrange_exponents
           rw [← Ring.sub_eq_add_neg] at rearrange_exponents
@@ -777,10 +788,9 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         exact simplify_exponenets
       rw [C5_2_9]
       apply ENNReal.coe_le_coe.mpr at coeff_ineq
-      exact coeff_ineq
-      sorry -- apply coeff_ineq with some ennreal stuff
+      exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
-#leansearch "NNReal to ENNReal mono?" -- 
+#leansearch "a *b ≤ a*c -> ?" -- 
 #check mul_le_mul_right₀
 
 
