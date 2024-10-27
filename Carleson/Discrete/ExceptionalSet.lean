@@ -726,7 +726,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     _ ≤ (2 * 12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
     _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
       /- rw [C5_2_9] -/
-      have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
+      have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
         have k_lt_1 : κ ≤ 1 := by sorry
         have twelve_le_D : (12 : ℝ≥0) ≤ D := by sorry
         have two_le_D : (2 : ℝ≥0) ≤ D := by sorry
@@ -761,7 +761,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
           rw [NNReal.rpow_one]
           exact mul_by_D_to_the_k_Z
-        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℤ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
+        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℝ ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
           rw [mul_assoc] at rearrange_exponents
           rw [← NNReal.mul_rpow] at rearrange_exponents
           rw [mul_assoc] at rearrange_exponents
@@ -771,12 +771,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rw [add_comm] at rearrange_exponents
           rw [← neg_eq_neg_one_mul] at rearrange_exponents
           rw [← Ring.sub_eq_add_neg] at rearrange_exponents
-          rw [← Ring.sub_eq_add_neg] at rearrange_exponents
+          have : 1 + -κ * Z * (n + 1) = 1 - κ * Z * (n + 1) := by ring
+          rw [this] at rearrange_exponents
           exact rearrange_exponents
         exact simplify_exponenets
+      rw [C5_2_9]
+      apply ENNReal.coe_le_coe.mpr at coeff_ineq
+      exact coeff_ineq
       sorry -- apply coeff_ineq with some ennreal stuff
 
-#leansearch "Ring a + (-b) = a - b?" -- 
+#leansearch "NNReal to ENNReal mono?" -- 
 #check mul_le_mul_right₀
 
 
