@@ -722,7 +722,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           exact measure_mono this
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
     _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
+    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
         -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
         have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
@@ -794,9 +794,9 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rw [← this] at X_u_eq_set
           rw [← X_u_eq_set] at small_b
           rw [htr] at small_b
-          norm_cast
-          norm_cast at small_b
+          rw [measureReal_def] at small_b
           exact small_b
+
           -- this exact should work after some NNReal coercions
           -- exact small_boundary_I_u
           sorry
@@ -871,13 +871,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       apply ENNReal.coe_le_coe.mpr at coeff_ineq
       exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
-#leansearch "a *b ≤ a*c -> ?" -- 
-#check mul_le_mul_right₀
+#leansearch "a ≤ a.toReal?" -- 
+
+lemma volume_eq_real_volume {X : Type} [MeasureSpace X] (A : Set X) : volume A = ENNReal.ofReal (volume.real A) := by simp
 
 
 #synth CommMonoid NNReal 
 
-#check   MulLECancellable.le_mul_iff_one_le_right
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
