@@ -774,7 +774,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           -- small boundary propery for 𝓘 u
           have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) := by
             -- use GridStructure.small_boundary
-            exact 
+            sorry
 
           have small_b := GridStructure.small_boundary small_boundary_h
 
