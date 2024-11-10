@@ -779,18 +779,24 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           have small_b := GridStructure.small_boundary small_boundary_h
 
 
-          rw [htr] at small_boundary_I_u
-          have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-          rw [← s_u_eq_s_𝓘_u] at small_boundary_I_u
-          rw [D_pow_add_algebra] at small_boundary_I_u
-          rw [D_pow_rearrangment] at small_boundary_I_u
+          /- rw [htr] at small_b -/
+          /- have s_u_eq_s_𝓘_u : 𝔰 u = GridStructure.s (𝓘 u) := by rfl -/
+          /- rw [← s_u_eq_s_𝓘_u] at small_b -/
+          /- rw [D_pow_add_algebra] at small_b  -/
+          /- rw [D_pow_rearrangment] at small_boundary_I_u -/
           have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
             rw [htr]
             have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
             rw [← s_u_eq_s_𝓘_u]
             rw [D_pow_add_algebra]
             rw [D_pow_rearrangment]
-          rw [← X_u_eq_set] at small_boundary_I_u
+          have : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
+          rw [← this] at X_u_eq_set
+          rw [← X_u_eq_set] at small_b
+          rw [htr] at small_b
+          norm_cast
+          norm_cast at small_b
+          exact small_b
           -- this exact should work after some NNReal coercions
           -- exact small_boundary_I_u
           sorry
