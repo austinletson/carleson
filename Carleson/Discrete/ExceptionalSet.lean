@@ -773,9 +773,10 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
           -- small boundary propery for 𝓘 u
           have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) := by
-            
             -- use GridStructure.small_boundary
-            exact GridStructure.small_boundary small_boundary_h
+            exact 
+
+          have small_b := GridStructure.small_boundary small_boundary_h
 
 
           rw [htr] at small_boundary_I_u
@@ -797,13 +798,80 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
         sorry
+    _ ≤ (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
+    _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
+      /- rw [C5_2_9] -/
+      have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
+        have twelve_le_D : 12 ≤ D := by 
+          have foo : ProofData a q K σ₁ σ₂ F G := by infer_instance
+          have : 4 ≤ a := foo.four_le_a
+          simp [defaultD]
+          have : 2 ^ (100) ≤ 2^ (100 * a ^2) := by 
+            apply (Nat.pow_le_pow_iff_right ?_).mpr
+            simp
+            nlinarith
+            norm_num
+          nlinarith
+        have twelve_le_D_nnreal : (12 : ℝ≥0) ≤ D := by
+          norm_cast
+        have two_le_D : 2 ≤ D := by linarith
+        have two_le_D_nnreal : (2 : ℝ≥0) ≤ D := by norm_cast
+        have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
+          have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
+            apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
+            apply NNReal.rpow_le_one ?_ ?_
+            have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
+            apply div_le_one_of_le twelve_le_D_nnreal
+            simp [D_pos]
+            apply κ_nonneg
+            simp [MulLECancellable]
+          exact le_trans this two_le_D_nnreal
+        have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
+          rw [← inv_mul_eq_div] at two_time_twelve_over_D_to_the_k_le_D
+          rw [NNReal.mul_rpow] at two_time_twelve_over_D_to_the_k_le_D
+          rw [NNReal.inv_rpow] at two_time_twelve_over_D_to_the_k_le_D
+          rw [← NNReal.rpow_neg] at two_time_twelve_over_D_to_the_k_le_D
+          nth_rewrite 2 [mul_comm] at two_time_twelve_over_D_to_the_k_le_D
+          rw [← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
+          exact two_time_twelve_over_D_to_the_k_le_D
+        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+          apply mul_le_mul_of_nonneg_right two_times_twelve_k_D_minus_k_le_D ?_
+          positivity
+        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-1*κ)  * D ^ (-1* κ  * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+          rw [← neg_eq_neg_one_mul]
+          exact mul_by_D_to_the_k_Z
+        have rearrange_exponents : 2 * (12 : ℝ≥0) ^ κ * (D ^ (-(1 : ℝ))) ^ κ * (D ^ (-(1 : ℝ) * Z * (n + 1)) : ℝ≥0) ^ κ ≤ (D : ℝ≥0) ^ (1 : ℝ) * D ^ (-κ * Z * (n + 1)) := by
+          have : (-1* κ  * Z * (n + 1) : ℝ) = (-1 * Z * (n + 1)) * κ := by ring
+          rw [this] at mul_by_D_to_the_k_Z
+          rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
+          rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
+          rw [NNReal.rpow_one]
+          exact mul_by_D_to_the_k_Z
+        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℝ ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
+          rw [mul_assoc] at rearrange_exponents
+          rw [← NNReal.mul_rpow] at rearrange_exponents
+          rw [mul_assoc] at rearrange_exponents
+          rw [← NNReal.mul_rpow] at rearrange_exponents
+          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
+          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
+          rw [add_comm] at rearrange_exponents
+          rw [← neg_eq_neg_one_mul] at rearrange_exponents
+          rw [← Ring.sub_eq_add_neg] at rearrange_exponents
+          have : 1 + -κ * Z * (n + 1) = 1 - κ * Z * (n + 1) := by ring
+          rw [this] at rearrange_exponents
+          exact rearrange_exponents
+        exact simplify_exponenets
+      rw [C5_2_9]
+      apply ENNReal.coe_le_coe.mpr at coeff_ineq
+      exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
-    _ = C5_2_9 X n * volume (𝓘 u : Set X) := by sorry -- this sorry is for the "Choosing the right k and D from Erics PDF"
+#leansearch "a *b ≤ a*c -> ?" -- 
+#check mul_le_mul_right₀
 
 
+#synth CommMonoid NNReal 
 
-#synth LinearOrderedSemifield NNReal
-
+#check   MulLECancellable.le_mul_iff_one_le_right
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
