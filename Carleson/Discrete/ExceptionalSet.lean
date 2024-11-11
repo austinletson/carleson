@@ -768,14 +768,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             -- need some power algegra to finish this off
             sorry
           
-          -- only needed for ENNReal t
-          /- have t_ne_top : t ≠ ⊤ := by sorry -- this shouldn't be too hard and I am not positive we will need it in the end -/
-
-          -- small boundary propery for 𝓘 u
-          have small_boundary_I_u : volume.real { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ tr * (D ^ (s (𝓘 u)):ℝ≥0)} ≤ 2 * tr ^ κ * volume.real (coeGrid (𝓘 u)) := by
-            -- use GridStructure.small_boundary
-            sorry
-
           have small_b := GridStructure.small_boundary small_boundary_h
 
 
@@ -788,18 +780,26 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             rw [htr]
             have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
             rw [← s_u_eq_s_𝓘_u]
-            rw [D_pow_add_algebra]
-            rw [D_pow_rearrangment]
-          have : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
-          rw [← this] at X_u_eq_set
+            /- have : (12 * D ^ (-Z * (n + 1) - 1: ℤ)) * D ^ 𝔰 u = 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) := by sorry -/
+            /- rw [this] -/
+            /- rw [D_pow_add_algebra] -/
+            /- rw [D_pow_rearrangment] -/
+            sorry
+          have grid_dot_s : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
+          rw [← grid_dot_s] at X_u_eq_set
+          clear grid_dot_s
           rw [← X_u_eq_set] at small_b
+          clear X_u_eq_set
           rw [htr] at small_b
           rw [measureReal_def] at small_b
-          exact small_b
-
-          -- this exact should work after some NNReal coercions
-          -- exact small_boundary_I_u
-          sorry
+          rw [measureReal_def] at small_b
+          rw [← ENNReal.toReal_le_toReal]
+          · rw [ENNReal.toReal_mul]
+            have : (2 * 12 * (D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ : ℝ≥0∞).toReal = 2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ := by sorry
+            rw [this]
+            exact small_b
+          · sorry -- see boundary_measure' in TileExestince
+          · sorry
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
