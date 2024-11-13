@@ -722,10 +722,10 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           exact measure_mono this
         exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
     _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
-    _ ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
+    _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
         -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
-        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
+        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
           -- choose t for small boundary property
           /- set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht -/
@@ -766,6 +766,8 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                 exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
               apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
             -- need some power algegra to finish this off
+            apply (mul_inv_le_iff' (sorry)).mpr at small_boundary_h_intermediate
+            rw  [← NNReal.rpow_neg] at small_boundary_h_intermediate
             sorry
           
           have small_b := GridStructure.small_boundary small_boundary_h
@@ -795,7 +797,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           rw [measureReal_def] at small_b
           rw [← ENNReal.toReal_le_toReal]
           · rw [ENNReal.toReal_mul]
-            have : (2 * 12 * (D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ : ℝ≥0∞).toReal = 2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ := by sorry
+            have : (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ : ℝ≥0∞).toReal = 2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ := by sorry
             rw [this]
             exact small_b
           · sorry -- see boundary_measure' in TileExestince
@@ -804,7 +806,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
         sorry
-    _ ≤ (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ) : ℝ≥0) ^ κ : ℝ≥0) * volume (coeGrid (𝓘 u)) := by sorry -- convert to nnreal
     _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
       /- rw [C5_2_9] -/
       have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
@@ -869,9 +870,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         exact simplify_exponenets
       rw [C5_2_9]
       apply ENNReal.coe_le_coe.mpr at coeff_ineq
-      exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
+      push_cast at coeff_ineq
+      -- should be this with some minor modificiation for nested nnreal
+      /- exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X)) -/
+      sorry
 
-#leansearch "a ≤ a.toReal?" -- 
+
+#leansearch "c^(-1) ≤ b?"
 
 lemma volume_eq_real_volume {X : Type} [MeasureSpace X] (A : Set X) : volume A = ENNReal.ofReal (volume.real A) := by simp
 
