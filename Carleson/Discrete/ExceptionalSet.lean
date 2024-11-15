@@ -745,7 +745,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
           -- prove assumption for small boundary property
           have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ tr := by
-            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * (D ^ (𝔰 u)) := by
+            have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
+              have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
+              -- Generated with aesop, could be improved
+              rename_i left right
+              simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
+                Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
+                pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
+              obtain ⟨left, right_1⟩ := left
+              exact h1
+            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * D ^ (𝔰 u: ℤ) := by
               rw [htr]
               rw [D_pow_add_algebra]
               rw [D_pow_rearrangment]
@@ -754,21 +763,24 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
               have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
               have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
-                have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
-                  have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
-                  -- Generated with aesop, could be improved
-                  rename_i left right
-                  simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
-                    Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
-                    pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
-                  obtain ⟨left, right_1⟩ := left
-                  exact h1
                 exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
               apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
             -- need some power algegra to finish this off
-            apply (mul_inv_le_iff' (sorry)).mpr at small_boundary_h_intermediate
-            rw  [← NNReal.rpow_neg] at small_boundary_h_intermediate
-            sorry
+            apply (mul_inv_le_iff' (by positivity)).mpr at small_boundary_h_intermediate
+            rw [← NNReal.rpow_neg_one] at small_boundary_h_intermediate
+            have : (D ^ (𝔰 u : ℤ) : ℝ≥0) ^ (-1 : ℝ) = (D ^ (𝔰 u * (-1)) : ℝ≥0) := by 
+              have : (D ^ (𝔰 u : ℤ) : ℝ≥0) = (D ^ (𝔰 u : ℝ) : ℝ≥0) := by norm_cast
+              rw [this]
+              rw [← NNReal.rpow_mul]
+              norm_cast
+            rw [this] at small_boundary_h_intermediate
+            rw [mul_neg_one] at small_boundary_h_intermediate
+            rw [← zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) ] at small_boundary_h_intermediate
+            have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+            rw [s_u_eq_s_𝓘_u] at small_boundary_h_intermediate
+            rw [add_comm] at small_boundary_h_intermediate
+            rw [neg_add_eq_sub] at small_boundary_h_intermediate
+            exact small_boundary_h_intermediate
           
           have small_b := GridStructure.small_boundary small_boundary_h
 
@@ -876,7 +888,8 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       sorry
 
 
-#leansearch "c^(-1) ≤ b?"
+#leansearch "(a: ℝ≥0) (b c : ℝ ) :  (a ^ b) ^ c  = (a ^ (b * c))?"
+#leansearch "a + -b = a - b?"
 
 lemma volume_eq_real_volume {X : Type} [MeasureSpace X] (A : Set X) : volume A = ENNReal.ofReal (volume.real A) := by simp
 
