@@ -798,6 +798,15 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             /- rw [this] -/
             /- rw [D_pow_add_algebra] -/
             /- rw [D_pow_rearrangment] -/
+            /- have : ((D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) = (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry -/
+            have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by sorry
+            rw [this]
+            norm_cast
+            rw_mod_cast [D_pow_add_algebra]
+            rw [D_pow_rearrangment]
+            /- apply ENNReal.coe_le_coe.mpr -/
+            rw [h_X_u]
+            norm_cast 
             sorry
           have grid_dot_s : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
           rw [← grid_dot_s] at X_u_eq_set
