@@ -785,29 +785,20 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           have small_b := GridStructure.small_boundary small_boundary_h
 
 
-          /- rw [htr] at small_b -/
-          /- have s_u_eq_s_𝓘_u : 𝔰 u = GridStructure.s (𝓘 u) := by rfl -/
-          /- rw [← s_u_eq_s_𝓘_u] at small_b -/
-          /- rw [D_pow_add_algebra] at small_b  -/
-          /- rw [D_pow_rearrangment] at small_boundary_I_u -/
           have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
             rw [htr]
             have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
             rw [← s_u_eq_s_𝓘_u]
-            /- have : (12 * D ^ (-Z * (n + 1) - 1: ℤ)) * D ^ 𝔰 u = 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) := by sorry -/
-            /- rw [this] -/
-            /- rw [D_pow_add_algebra] -/
-            /- rw [D_pow_rearrangment] -/
-            /- have : ((D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞) = (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) := by sorry -/
-            have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by sorry
+            have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by simp
             rw [this]
             norm_cast
             rw_mod_cast [D_pow_add_algebra]
             rw [D_pow_rearrangment]
-            /- apply ENNReal.coe_le_coe.mpr -/
             rw [h_X_u]
-            norm_cast 
-            sorry
+            have : 12 * (D ^ (𝔰 u - (Z * (n + 1) : ℤ) - 1) : ℝ≥0∞) = ((12 * (D ^ (𝔰 u - (Z * (n + 1)) - 1) : ℝ≥0)) : ℝ≥0∞) := by 
+              simp
+            norm_cast at this
+            rw [this]
           have grid_dot_s : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
           rw [← grid_dot_s] at X_u_eq_set
           clear grid_dot_s
@@ -891,16 +882,19 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         exact simplify_exponenets
       rw [C5_2_9]
       apply ENNReal.coe_le_coe.mpr at coeff_ineq
-      push_cast at coeff_ineq
+      norm_cast
+      have : (2 * (12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ) : ℝ≥0∞) = 2 * ((12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0)) : ℝ≥0∞) ^ κ := by sorry
       -- should be this with some minor modificiation for nested nnreal
-      /- exact mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X)) -/
-      sorry
+      have : 12 * (D ^ (-Z * (n + 1) - 1: ℤ ) : ℝ≥0) ≠ 0 := by 
+        simp
+        positivity
+      rw [← ENNReal.coe_rpow_of_ne_zero (by exact this)] -- why do I need this with exact_mod_cast?
+      exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
 
-#leansearch "(a: ℝ≥0) (b c : ℝ ) :  (a ^ b) ^ c  = (a ^ (b * c))?"
+#leansearch "coe (a : ℝ≥0∞ ) ^ c  = (a ^ c) : ℝ≥0∞?"
 #leansearch "a + -b = a - b?"
 
-lemma volume_eq_real_volume {X : Type} [MeasureSpace X] (A : Set X) : volume A = ENNReal.ofReal (volume.real A) := by simp
 
 
 #synth CommMonoid NNReal 
