@@ -649,12 +649,24 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-
+#leansearch "a < c -> a ≠ ⊤?"
+lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
   set X_u := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
+
+  have I_u_finite : volume (coeGrid (𝓘 u)) ≠ ⊤ := by 
+    #check LT.lt.ne
+    #check lt_of_le_of_lt
+    #check 𝔘₁_subset_ℭ₁
+    #check 𝔓.le_def' 
+
+    #check measure_ball_lt_top 
+    apply LT.lt.ne
+    rcases hu with temp
+    sorry
 
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
@@ -812,7 +824,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             have : (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ : ℝ≥0∞).toReal = 2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ := by sorry
             rw [this]
             exact small_b
-          · sorry -- see boundary_measure' in TileExestince
+          · apply LT.lt.ne
+            rw [h_X_u]
+            apply lt_of_le_of_lt
+            · apply volume.mono
+              exact inter_subset_left
+            /- · have : volume (𝓘 u : Set X) -/
+            /-   refine lt_of_le_of_lt ?_ ?_ -/
+            simp
+            apply lt_top_iff_ne_top.mpr
+            exact I_u_finite
           · sorry
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
@@ -892,9 +913,11 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
 
-#leansearch "coe (a : ℝ≥0∞ ) ^ c  = (a ^ c) : ℝ≥0∞?"
+#leansearch "a < ⊤ -> a ≠ ⊤?"
 #leansearch "a + -b = a - b?"
 
+
+#check lt_top_iff_ne_top
 
 
 #synth CommMonoid NNReal 
