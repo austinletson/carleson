@@ -662,8 +662,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     apply LT.lt.ne
     simp [volume_coeGrid_lt_top]
 
-
-
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
@@ -736,8 +734,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
           -- choose t for small boundary property
-          /- set t := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) with ht -/
-          -- not sure if it is easier to prove with t as a NNReal instead of ENNReal
           set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
           rcases hi with ⟨_, s_i_eq_stuff, _⟩
 
@@ -773,7 +769,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
                 exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
               apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-            -- need some power algegra to finish this off
             apply (mul_inv_le_iff' (by positivity)).mpr at small_boundary_h_intermediate
             rw [← NNReal.rpow_neg_one] at small_boundary_h_intermediate
             have : (D ^ (𝔰 u : ℤ) : ℝ≥0) ^ (-1 : ℝ) = (D ^ (𝔰 u * (-1)) : ℝ≥0) := by 
