@@ -825,8 +825,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             apply lt_of_le_of_lt
             · apply volume.mono
               exact inter_subset_left
-            /- · have : volume (𝓘 u : Set X) -/
-            /-   refine lt_of_le_of_lt ?_ ?_ -/
             simp
             apply lt_top_iff_ne_top.mpr
             apply LT.lt.ne
@@ -834,13 +832,20 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           · apply LT.lt.ne
             have : 2 * (12 * D ^ (-Z * (n + 1) - 1: ℤ) : ℝ≥0∞ ) ^ κ < ⊤ := by 
               norm_cast
-              have : (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ := by 
+              have h1 : (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ := by 
                 have : (D : ℝ≥0∞) < ⊤ := by apply WithTop.coe_lt_top
                 apply ENNReal.zpow_lt_top ?_ ?_
 
-                have D_pos : 0 < (D : ℝ≥0∞) := by simp [one_le_D]
-                sorry
-              sorry
+                have D_pos_ennreal : 0 < (D : ℝ≥0∞) := by 
+                  have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
+                  assumption_mod_cast
+                exact pos_iff_ne_zero.mp D_pos_ennreal
+                exact lt_top_iff_ne_top.mp this
+              have h2 : 12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ :=
+                WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h1
+              have h3 : (12 * D ^ (-Z * (n + 1) - 1: ℤ) : ℝ≥0∞ ) ^ κ < ⊤ :=
+                (ENNReal.rpow_lt_top_of_nonneg κ_nonneg) (lt_top_iff_ne_top.mp h2)
+              exact WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h3
             apply WithTop.mul_lt_top this (lt_top_iff_ne_top.mpr I_u_finite)
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
@@ -920,7 +925,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
 
-#leansearch "zpow_lt_top (h1: a < ⊤ ) -> a ^ b < ⊤?"
+#leansearch "(a : ℝ≥0∞) (b : ℝ) (h1 : a < ⊤ ) : a ^ b < ⊤?"
 #leansearch "a + -b = a - b?"
 
 
