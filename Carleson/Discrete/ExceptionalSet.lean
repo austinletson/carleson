@@ -649,8 +649,9 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-#leansearch "a < c -> a ≠ ⊤?"
-lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry 
+#leansearch "(h1: a < ⊤) (h2 : b < ⊤) :  a * b < ⊤?"
+/- lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry  -/
+
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
@@ -658,15 +659,10 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
   set X_u := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
 
   have I_u_finite : volume (coeGrid (𝓘 u)) ≠ ⊤ := by 
-    #check LT.lt.ne
-    #check lt_of_le_of_lt
-    #check 𝔘₁_subset_ℭ₁
-    #check 𝔓.le_def' 
-
-    #check measure_ball_lt_top 
     apply LT.lt.ne
-    rcases hu with temp
-    sorry
+    simp [volume_coeGrid_lt_top]
+
+
 
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
@@ -833,8 +829,19 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             /-   refine lt_of_le_of_lt ?_ ?_ -/
             simp
             apply lt_top_iff_ne_top.mpr
-            exact I_u_finite
-          · sorry
+            apply LT.lt.ne
+            simp [volume_coeGrid_lt_top]
+          · apply LT.lt.ne
+            have : 2 * (12 * D ^ (-Z * (n + 1) - 1: ℤ) : ℝ≥0∞ ) ^ κ < ⊤ := by 
+              norm_cast
+              have : (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ := by 
+                have : (D : ℝ≥0∞) < ⊤ := by apply WithTop.coe_lt_top
+                apply ENNReal.zpow_lt_top ?_ ?_
+
+                have D_pos : 0 < (D : ℝ≥0∞) := by simp [one_le_D]
+                sorry
+              sorry
+            apply WithTop.mul_lt_top this (lt_top_iff_ne_top.mpr I_u_finite)
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
@@ -913,7 +920,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
 
 
-#leansearch "a < ⊤ -> a ≠ ⊤?"
+#leansearch "zpow_lt_top (h1: a < ⊤ ) -> a ^ b < ⊤?"
 #leansearch "a + -b = a - b?"
 
 
