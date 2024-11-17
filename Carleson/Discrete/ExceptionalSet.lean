@@ -649,9 +649,21 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-#leansearch "subset ∀ x ∈ X, x ⊆ Y -> ∑' x : X, volume x ≤ volume Y?"
-#check ENNReal.tsum_mono_subtype
+/- #leansearch "all i subset of X. iunion subset of X?" -/
+/- #check ENNReal.tsum_mono_subtype -/
+/- #check ENNReal.tsum_iUnion_le_tsum -/
+/- #check ENNReal.tsum_iUnion_le_tsum -/
+/- #check Finset.sum_le_sum_of_subset -/
+/- #check MeasureTheory.measure_iUnion_congr_of_subset -/
+/- #check MeasureTheory.measure_iUnion_le -/
+/- #check MeasureTheory.measure_union_le -/
+/- #check MeasureTheory.Measure.Subtype.volume_univ -/
+/- #check MeasureTheory.measure_iUnion_congr_of_subset -/
+/- #check MeasureTheory.measure_union_le -/
 /- lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry  -/
+
+/- example {i : Set X} {X_u : Set X} (h1 : i ⊆ X_u) : ∑' i, volume (i : Set X) ≤ volume X_u := by  -/
+/-   sorry -/
 
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
@@ -665,7 +677,6 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
     _ ≤ volume X_u := by
         have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
           intro i hi
@@ -728,13 +739,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           have : ↑i ⊆ X_u := i_subset_X_u i hi
           exact measure_mono this
         /- exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) -/
-        #check tsum_le_tsum
-        have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := by sorry
-        have vol_all_i_le_X_u : ∑' i : 𝓛 (X := X) n u, volume (i : Set X) ≤ volume X_u := by 
-          
-          sorry
-        exact vol_all_i_le_X_u
-    _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
+        /- have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := by sorry -/
+        have vol_all_i_le_X_u : ∑' i : 𝓛 (X := X) n u, volume (i : Set X) ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by 
+          exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) 
+
+        have i_subset_X_u_colon_type : ∀ i : 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by simp [i_subset_X_u]
+
+        have union_subset := Set.iUnion_subset_iff.mpr i_subset_X_u_colon_type
+        have vol_union_lt_vol_X_u : volume (⋃ i : 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := measure_mono union_subset
+        simp [vol_union_lt_vol_X_u]
+        sorry
     _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
         -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
@@ -852,7 +866,17 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
-        sorry
+        /- specialize small_boundary_observation default -/
+
+        #synth Inhabited (𝓛 (X := X) n u)
+        have foo: Set.Nonempty (𝓛 (X := X) n u) := default
+
+        
+
+        obtain ⟨i, hi⟩ := foo
+
+        exact small_boundary_observation i hi
+
     _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
       /- rw [C5_2_9] -/
       have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
