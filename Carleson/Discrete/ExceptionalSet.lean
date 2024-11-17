@@ -649,7 +649,7 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-#leansearch "(h1: a < ⊤) (h2 : b < ⊤) :  a * b < ⊤?"
+#leansearch "∀ x ∈ X, x ⊆ Y -> volume (⋃ x ∈ X) ≤ volume Y?"
 /- lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry  -/
 
 open GridStructure (coeGrid) in
@@ -665,7 +665,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
   -- calc proof
   calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
     _ ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
-    _ ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by
+    _ ≤ volume X_u := by
         have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
           intro i hi
           rw [subset_setOf]
@@ -726,7 +726,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           intro i hi
           have : ↑i ⊆ X_u := i_subset_X_u i hi
           exact measure_mono this
-        exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp)
+        /- exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) -/
+        #check tsum_le_tsum
+        have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := by sorry
+        have vol_all_i_le_X_u : ∑' i : 𝓛 (X := X) n u, volume (i : Set X) ≤ volume X_u := by 
+          
+          sorry
+        exact vol_all_i_le_X_u
     _ ≤ volume X_u := by sorry -- I am not sure how move from the sum of i's to total X_u
     _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
