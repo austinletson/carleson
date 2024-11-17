@@ -649,7 +649,8 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-#leansearch "∀ x ∈ X, x ⊆ Y -> volume (⋃ x ∈ X) ≤ volume Y?"
+#leansearch "subset ∀ x ∈ X, x ⊆ Y -> ∑' x : X, volume x ≤ volume Y?"
+#check ENNReal.tsum_mono_subtype
 /- lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry  -/
 
 open GridStructure (coeGrid) in
