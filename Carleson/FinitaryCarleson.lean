@@ -49,7 +49,7 @@ private lemma sum_eq_zero_of_nmem_Icc {f : X → ℂ} {x : X} (s : ℤ)
   exact fun _ ⟨_, h⟩ _ ↦ hp ▸ hs.2 (hp ▸ h)
 
 lemma exists_Grid {x : X} (hx : x ∈ G) {s : ℤ} (hs : s ∈ (Icc (σ₁ x) (σ₂ x)).toFinset) :
-    ∃ I : GridStructure.Grid X (defaultA a), GridStructure.s I = s ∧ x ∈ I := by
+    ∃ I : Grid X, GridStructure.s I = s ∧ x ∈ I := by
   have DS : (D : ℝ) ^ S = (D : ℝ) ^ (S : ℤ) := rfl
   have : x ∈ ball o (D ^ S / 4) := ProofData.G_subset hx
   rw [← c_topCube (X := X), DS, ← s_topCube (X := X)] at this
@@ -88,9 +88,7 @@ theorem tile_sum_operator {G' : Set X} {f : X → ℂ}
       exact disjoint_left.1 (disjoint_Ω p'p <| Or.resolve_right (eq_or_disjoint s_eq) this) Qp' Qp
     rw [Finset.sum_eq_single_of_mem p p𝔓Xs this]
     have xEp : x ∈ E p :=
-      ⟨𝓘pI ▸ xI, Qp, by
-        have := 𝔰_eq p𝔓Xs ▸ hs
-        simpa only [toFinset_Icc, Finset.mem_Icc] using this⟩
+      ⟨𝓘pI ▸ xI, Qp, by simpa only [toFinset_Icc, Finset.mem_Icc, 𝔰_eq p𝔓Xs] using hs⟩
     simp_rw [carlesonOn_def', indicator_of_mem xEp, 𝔰_eq p𝔓Xs]
 
 end

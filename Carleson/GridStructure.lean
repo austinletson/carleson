@@ -7,17 +7,16 @@ noncomputable section
 section Generic
 universe u
 variable {𝕜 : Type*} [_root_.RCLike 𝕜]
-variable {X : Type u} {A : ℝ≥0} [PseudoMetricSpace X] [DoublingMeasure X A]
 
 variable (X) in
 /-- A grid structure on `X`.
 I expect we prefer `coeGrid : Grid → Set X` over `Grid : Set (Set X)`
 Note: the `s` in this paper is `-s` of Christ's paper.
 -/
-class GridStructure
+class GridStructure {A : outParam ℝ≥0} [PseudoMetricSpace X] [DoublingMeasure X A]
     (D : outParam ℕ) (κ : outParam ℝ) (S : outParam ℕ) (o : outParam X) where
   /-- indexing set for a grid structure -/
-  Grid : Type u
+  protected Grid : Type u
   fintype_Grid : Fintype Grid
   /-- The collection of dyadic cubes -/
   coeGrid : Grid → Set X
@@ -44,13 +43,14 @@ export GridStructure (range_s_subset Grid_subset_biUnion ball_subset_Grid Grid_s
 
 attribute [coe] GridStructure.coeGrid
 
+variable {X : Type u} {A : ℝ≥0} [PseudoMetricSpace X] [DoublingMeasure X A]
 variable {D : ℕ} {κ : ℝ} {S : ℕ} {o : X}
 variable [GridStructure X D κ S o]
 
 variable (X) in
 /-- The indexing type of the grid structure. Elements are called (dyadic) cubes.
 Note that this type has instances for both `≤` and `⊆`, but they do *not* coincide. -/
-abbrev Grid : Type u := GridStructure.Grid X A
+abbrev Grid : Type u := GridStructure.Grid X
 
 def s : Grid X → ℤ := GridStructure.s
 def c : Grid X → X := GridStructure.c
@@ -112,8 +112,6 @@ lemma isTop_topCube : IsTop (topCube : Grid X) := fun _ ↦ le_topCube
 
 lemma isMax_iff : IsMax i ↔ i = topCube := isTop_topCube.isMax_iff
 
-lemma isMin_iff : IsMin i ↔ s i = - S := sorry
-
 /-- The set `I ↦ Iᵒ` in the blueprint. -/
 def int (i : Grid X) : Set X := ball (c i) (D ^ s i / 4)
 
@@ -161,6 +159,28 @@ lemma le_dyadic {i j k : Grid X} (h : s i ≤ s j) (li : k ≤ i) (lj : k ≤ j)
   · apply lt_of_le_of_ne (le_def.mpr ⟨h.1, h.2.le⟩)
     by_contra a; rw [a, lt_self_iff_false] at h; exact h.2
 
+lemma isMin_iff {i : Grid X} : IsMin i ↔ s i = - S := by
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · apply le_antisymm ?_ scale_mem_Icc.1
+    contrapose! h
+    have : -(S : ℤ) ∈ Ico (-(S : ℤ)) (s i) := by simp [h]
+    have := Grid_subset_biUnion (i := i) (-S) this c_mem_Grid
+    simp only [defaultA, defaultD.eq_1, defaultκ.eq_1, mem_preimage, mem_singleton_iff, mem_iUnion,
+      exists_prop] at this
+    rcases this with ⟨j, (hj : s j = -(S : ℤ)), h'j⟩
+    have sji : s j < s i := by simpa [hj] using h
+    have : (j : Set X) ⊆ i := by
+      rcases fundamental_dyadic sji.le with hji | h_disj
+      · exact hji
+      · exact (disjoint_right.1 h_disj c_mem_Grid h'j).elim
+    have : j < i := by simp [this, sji]
+    exact this.not_isMin
+  · intro j hj
+    have : s i ≤ s j := by rw [h]; exact (scale_mem_Icc (i := j)).1
+    rcases le_or_disjoint this with h' | h_disj
+    · exact h'
+    · exact False.elim (disjoint_right.1 h_disj c_mem_Grid (hj.1 c_mem_Grid))
+
 /-- There exists a unique successor of each non-maximal cube. -/
 lemma exists_unique_succ (i : Grid X) (h : ¬IsMax i) :
     ∃! j ∈ Finset.univ, i < j ∧ ∀ j', i < j' → j ≤ j' := by
@@ -173,8 +193,7 @@ lemma exists_unique_succ (i : Grid X) (h : ¬IsMax i) :
   simp only [gt_iff_lt, Finset.mem_filter, Finset.mem_univ, true_and, incs] at mj hj
   replace hj : ∀ (x : Grid X), i < x → j ≤ x := fun x mx ↦ by
     rcases lt_or_le (s x) (s j) with c | c
-    · have := le_dyadic c.le mx.le mj.le
-      exact (eq_of_le_of_not_lt this (hj x mx)).symm.le
+    · exact (eq_of_le_of_not_lt (le_dyadic c.le mx.le mj.le) (hj x mx)).symm.le
     · exact le_dyadic c mj.le mx.le
   use j, ⟨mj, hj⟩, fun k ⟨hk₁, hk₂⟩ ↦ le_antisymm (hk₂ j mj) (hj k hk₁)
 
@@ -209,17 +228,18 @@ lemma succ_le_of_lt (h : i < j) : i.succ ≤ j := by
 lemma exists_containing_subcube (l : ℤ) (h : l ∈ Icc (-S : ℤ) (s i)) {x : X} (mx : x ∈ i) :
     ∃ j, s j = l ∧ x ∈ j := by
   obtain ⟨lb, ub⟩ := h
-  rcases ub.eq_or_lt with ub | ub; · exact ⟨i, ub.symm, mx⟩
-  have := Grid_subset_biUnion l ⟨lb, ub⟩ mx
-  simp_rw [mem_iUnion₂, mem_preimage, mem_singleton_iff, exists_prop] at this
-  exact this
+  rcases ub.eq_or_lt with ub | ub
+  · exact ⟨i, ub.symm, mx⟩
+  · simpa [mem_iUnion₂, mem_preimage, mem_singleton_iff, exists_prop] using
+      Grid_subset_biUnion l ⟨lb, ub⟩ mx
 
 lemma exists_supercube (l : ℤ) (h : l ∈ Icc (s i) S) : ∃ j, s j = l ∧ i ≤ j := by
   obtain ⟨lb, ub⟩ := h
   rcases ub.eq_or_lt with ub | ub; · exact ⟨topCube, by simpa [ub] using s_topCube, le_topCube⟩
   obtain ⟨x, hx⟩ := i.nonempty
   have bound_i : -S ≤ s i ∧ s i ≤ S := scale_mem_Icc
-  have ts := Grid_subset_biUnion (X := X) (i := topCube) l (by rw [s_topCube, mem_Ico]; omega)
+  have ts := Grid_subset_biUnion (X := X) (i := topCube) l
+    (by rw [s_topCube, mem_Ico]; omega)
   have := mem_of_mem_of_subset hx ((le_topCube (i := i)).1.trans ts)
   simp_rw [mem_preimage, mem_singleton_iff, mem_iUnion, exists_prop] at this
   obtain ⟨j, (sj : s j = l), mj⟩ := this; use j, sj
@@ -323,7 +343,7 @@ lemma dist_strictMono {I J : Grid X} (hpq : I < J) {f g : Θ X} :
       gcongr
       have : s I < s J := (Grid.lt_def.mp hpq).2
       exact cdist_mono (ball_subset_ball (mul_le_mul_of_nonneg_left
-        (zpow_le_of_le one_le_D (by omega)) zero_le_four))
+        (zpow_le_zpow_right₀ one_le_D (by omega)) zero_le_four))
     _ ≤ 2 ^ (-100 * (a : ℝ)) * dist_{c J, 8 * D ^ s J} f g := by
       gcongr
       have : c I ∈ ball (c J) (4 * D ^ s J) :=
