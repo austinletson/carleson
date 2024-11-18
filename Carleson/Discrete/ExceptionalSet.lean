@@ -649,7 +649,7 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-/- #leansearch "all i subset of X. iunion subset of X?" -/
+#leansearch "all i subset of X. iunion subset of X?"
 /- #check ENNReal.tsum_mono_subtype -/
 /- #check ENNReal.tsum_iUnion_le_tsum -/
 /- #check ENNReal.tsum_iUnion_le_tsum -/
@@ -665,6 +665,7 @@ lemma tree_count :
 /- example {i : Set X} {X_u : Set X} (h1 : i ⊆ X_u) : ∑' i, volume (i : Set X) ≤ volume X_u := by  -/
 /-   sorry -/
 
+lemma 𝓛_n_u_non_empty {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : Set.Nonempty (𝓛 (X := X) n u) := by sorry
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
@@ -747,12 +748,13 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
 
         have union_subset := Set.iUnion_subset_iff.mpr i_subset_X_u_colon_type
         have vol_union_lt_vol_X_u : volume (⋃ i : 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := measure_mono union_subset
-        simp [vol_union_lt_vol_X_u]
-        sorry
+        have vol_colon_type_eq_vol_member : ⋃ i : 𝓛 (X := X) n u, (i : Set X) = ⋃ i ∈ 𝓛 (X := X) n u, (i : Set X) := by simp
+        rw [← vol_colon_type_eq_vol_member]
+        exact vol_union_lt_vol_X_u
     _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
         -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
-        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) ^ κ * volume (𝓘 u : Set X) := by
+        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
           intro i hi
           -- choose t for small boundary property
           set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
@@ -828,12 +830,17 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
           clear grid_dot_s
           rw [← X_u_eq_set] at small_b
           clear X_u_eq_set
-          rw [htr] at small_b
+          /- rw [htr] at small_b -/
           rw [measureReal_def] at small_b
           rw [measureReal_def] at small_b
           rw [← ENNReal.toReal_le_toReal]
           · rw [ENNReal.toReal_mul]
-            have : (2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ : ℝ≥0∞).toReal = 2 * (12 * D ^ (-Z * (n + 1) - 1 : ℤ)) ^ κ := by sorry
+            have : (2 * (tr ^ κ : ℝ≥0∞)).toReal = 2 * tr ^ κ  := by 
+              rw [ENNReal.toReal_mul]
+              conv_lhs => norm_cast
+              congr
+              rw [← ENNReal.toReal_rpow]
+              congr
             rw [this]
             exact small_b
           · apply LT.lt.ne
@@ -846,34 +853,24 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             apply LT.lt.ne
             simp [volume_coeGrid_lt_top]
           · apply LT.lt.ne
-            have : 2 * (12 * D ^ (-Z * (n + 1) - 1: ℤ) : ℝ≥0∞ ) ^ κ < ⊤ := by 
-              norm_cast
-              have h1 : (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ := by 
-                have : (D : ℝ≥0∞) < ⊤ := by apply WithTop.coe_lt_top
-                apply ENNReal.zpow_lt_top ?_ ?_
-
-                have D_pos_ennreal : 0 < (D : ℝ≥0∞) := by 
-                  have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
-                  assumption_mod_cast
-                exact pos_iff_ne_zero.mp D_pos_ennreal
-                exact lt_top_iff_ne_top.mp this
-              have h2 : 12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0∞) < ⊤ :=
-                WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h1
-              have h3 : (12 * D ^ (-Z * (n + 1) - 1: ℤ) : ℝ≥0∞ ) ^ κ < ⊤ :=
-                (ENNReal.rpow_lt_top_of_nonneg κ_nonneg) (lt_top_iff_ne_top.mp h2)
-              exact WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h3
-            apply WithTop.mul_lt_top this (lt_top_iff_ne_top.mpr I_u_finite)
+            have tr_lt_top : 2 * (tr : ℝ≥0∞) ^ κ < ⊤ := by
+              rw [htr]
+              have : 2 * ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ := by 
+                have h1 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) < ⊤ := by 
+                  apply WithTop.coe_lt_top
+                have h3 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ :=
+                  (ENNReal.rpow_lt_top_of_nonneg κ_nonneg) (lt_top_iff_ne_top.mp h1)
+                exact WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h3
+              exact this
+            apply WithTop.mul_lt_top tr_lt_top (lt_top_iff_ne_top.mpr I_u_finite)
 
         -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
         -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
         /- specialize small_boundary_observation default -/
 
-        #synth Inhabited (𝓛 (X := X) n u)
-        have foo: Set.Nonempty (𝓛 (X := X) n u) := default
+        /- have foo : Set.Nonempty (𝓛 (X := X) n u) := 𝓛_n_u_non_empty -/
 
-        
-
-        obtain ⟨i, hi⟩ := foo
+        obtain ⟨i, hi⟩ := 𝓛_n_u_non_empty hu
 
         exact small_boundary_observation i hi
 
