@@ -649,314 +649,301 @@ lemma tree_count :
   rw [sub_eq_add_neg, zpow_add₀ two_ne_zero, ← pow_mul, mul_comm 9, mul_comm (2 ^ _)]
   norm_cast
 
-#leansearch "all i subset of X. iunion subset of X?"
-/- #check ENNReal.tsum_mono_subtype -/
-/- #check ENNReal.tsum_iUnion_le_tsum -/
-/- #check ENNReal.tsum_iUnion_le_tsum -/
-/- #check Finset.sum_le_sum_of_subset -/
-/- #check MeasureTheory.measure_iUnion_congr_of_subset -/
-/- #check MeasureTheory.measure_iUnion_le -/
-/- #check MeasureTheory.measure_union_le -/
-/- #check MeasureTheory.Measure.Subtype.volume_univ -/
-/- #check MeasureTheory.measure_iUnion_congr_of_subset -/
-/- #check MeasureTheory.measure_union_le -/
-/- lemma 𝓘_u_finite {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : volume (GridStructure.coeGrid (𝓘 u)) ≠ ⊤ := by sorry  -/
 
-/- example {i : Set X} {X_u : Set X} (h1 : i ⊆ X_u) : ∑' i, volume (i : Set X) ≤ volume X_u := by  -/
-/-   sorry -/
-
-lemma 𝓛_n_u_non_empty {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) : Set.Nonempty (𝓛 (X := X) n u) := by sorry
 open GridStructure (coeGrid) in
 /-- Lemma 5.2.9 -/
 lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
     volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by
-  set X_u := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
+  by_cases  h_𝓛_n_u_non_empty : Set.Nonempty (𝓛 (X := X) n u)
+  · set X_u := { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ 12 * (D ^ (𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0∞)} with h_X_u
 
-  have I_u_finite : volume (coeGrid (𝓘 u)) ≠ ⊤ := by 
-    apply LT.lt.ne
-    simp [volume_coeGrid_lt_top]
+    have I_u_finite : volume (coeGrid (𝓘 u)) ≠ ⊤ := by 
+      apply LT.lt.ne
+      simp [volume_coeGrid_lt_top]
 
-  -- calc proof
-  calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
-    _ ≤ volume X_u := by
-        have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
-          intro i hi
-          rw [subset_setOf]
-          intro ipt hipt
-          rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
-          constructor
-          · exact i_subset_I_u hipt
-          · have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
-            rw [exponential_simplification] -- simplify D exponential expression
+    -- calc proof
+    calc volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X))
+      _ ≤ volume X_u := by
+          have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
+            intro i hi
+            rw [subset_setOf]
+            intro ipt hipt
+            rcases hi with ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩
+            constructor
+            · exact i_subset_I_u hipt
+            · have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
+              rw [exponential_simplification] -- simplify D exponential expression
 
-            obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+              obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
 
-            -- triangle inequality between ipt, bpt, c i
-            have ipt_bpt_triangle_ineq : dist ipt bpt ≤ (12 * D ^ s i : ℝ) :=
-              calc dist ipt bpt
-                _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
-                _ ≤ 4 * D ^ s i + dist (c i) bpt := by
-                  have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
-                    have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
-                    simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-                  rel [dist_ipt_c_i_le]
-                _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw[dist_comm]
-                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by
-                    have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
-                      defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-                    rel [dist_bpt_c_i_le]
-                _ ≤ 12 * D ^ s i := by linarith
+              -- triangle inequality between ipt, bpt, c i
+              have ipt_bpt_triangle_ineq : dist ipt bpt ≤ (12 * D ^ s i : ℝ) :=
+                calc dist ipt bpt
+                  _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
+                  _ ≤ 4 * D ^ s i + dist (c i) bpt := by
+                    have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
+                      have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
+                      simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                        Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                    rel [dist_ipt_c_i_le]
+                  _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw[dist_comm]
+                  _ ≤ 4 * D ^ s i + 8 * D ^ s i := by
+                      have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
+                        defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                        Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                      rel [dist_bpt_c_i_le]
+                  _ ≤ 12 * D ^ s i := by linarith
 
-            -- convert from dist to edist
-            have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by
-              rw [edist_dist]
-              have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) :=
-                ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq
-              exact ofReal_ofReal
+              -- convert from dist to edist
+              have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by
+                rw [edist_dist]
+                have ofReal_ofReal : ENNReal.ofReal (dist ipt bpt) ≤ ENNReal.ofReal (12 * ↑D ^ s i) :=
+                  ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq
+                exact ofReal_ofReal
 
-            -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
-            have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
-            calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
-              _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
-              _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
-              _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := by
-                  have D_pos : 0 < (D : ℝ) := by simp [one_le_D]
-                  have D_s_i_pos : 0 < (D ^ (s i : ℤ) : ℝ) := zpow_pos_of_pos D_pos (s i)
-                  have twelve_D_s_i_pos : 0 < 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
-                  apply le_of_eq
-                  exact congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
-                    simpa using zpow_nonneg (by simp [twelve_D_s_i_pos]) (s i)
-              _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
-                  push_cast
-                  rw [ENNReal.coe_zpow]
-                  · push_cast
-                    rfl
-                  · simp [one_le_D]
+              -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
+              have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
+              calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
+                _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
+                _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
+                _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := by
+                    have D_pos : 0 < (D : ℝ) := by simp [one_le_D]
+                    have D_s_i_pos : 0 < (D ^ (s i : ℤ) : ℝ) := zpow_pos_of_pos D_pos (s i)
+                    have twelve_D_s_i_pos : 0 < 12 * (D ^ (s i: ℤ) : ℝ)  := by positivity
+                    apply le_of_eq
+                    exact congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
+                      simpa using zpow_nonneg (by simp [twelve_D_s_i_pos]) (s i)
+                _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
+                    push_cast
+                    rw [ENNReal.coe_zpow]
+                    · push_cast
+                      rfl
+                    · simp [one_le_D]
 
-        have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
-          intro i hi
-          have : ↑i ⊆ X_u := i_subset_X_u i hi
-          exact measure_mono this
-        /- exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) -/
-        /- have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := by sorry -/
-        have vol_all_i_le_X_u : ∑' i : 𝓛 (X := X) n u, volume (i : Set X) ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by 
-          exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) 
+          have i_vol_le_X_u : ∀ i ∈ 𝓛 (X := X) n u, volume (coeGrid i) ≤ volume X_u := by
+            intro i hi
+            have : ↑i ⊆ X_u := i_subset_X_u i hi
+            exact measure_mono this
+          /- exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) -/
+          /- have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := by sorry -/
+          have vol_all_i_le_X_u : ∑' i : 𝓛 (X := X) n u, volume (i : Set X) ≤ ∑' i : 𝓛 (X := X) n u, volume X_u := by 
+            exact tsum_le_tsum (by simp [i_vol_le_X_u]) (by simp) (by simp) 
 
-        have i_subset_X_u_colon_type : ∀ i : 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by simp [i_subset_X_u]
+          have i_subset_X_u_colon_type : ∀ i : 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by simp [i_subset_X_u]
 
-        have union_subset := Set.iUnion_subset_iff.mpr i_subset_X_u_colon_type
-        have vol_union_lt_vol_X_u : volume (⋃ i : 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := measure_mono union_subset
-        have vol_colon_type_eq_vol_member : ⋃ i : 𝓛 (X := X) n u, (i : Set X) = ⋃ i ∈ 𝓛 (X := X) n u, (i : Set X) := by simp
-        rw [← vol_colon_type_eq_vol_member]
-        exact vol_union_lt_vol_X_u
-    _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
+          have union_subset := Set.iUnion_subset_iff.mpr i_subset_X_u_colon_type
+          have vol_union_lt_vol_X_u : volume (⋃ i : 𝓛 (X := X) n u, (i : Set X)) ≤ volume X_u := measure_mono union_subset
+          have vol_colon_type_eq_vol_member : ⋃ i : 𝓛 (X := X) n u, (i : Set X) = ⋃ i ∈ 𝓛 (X := X) n u, (i : Set X) := by simp
+          rw [← vol_colon_type_eq_vol_member]
+          exact vol_union_lt_vol_X_u
+      _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
-        -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
-        have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
-          intro i hi
-          -- choose t for small boundary property
-          set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
-          rcases hi with ⟨_, s_i_eq_stuff, _⟩
+          -- not sure if we need the ∀ i ∈ 𝓛 (X := X) n u here
+          have small_boundary_observation : ∀ i ∈ 𝓛 (X := X) n u, volume X_u ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
+            intro i hi
+            -- choose t for small boundary property
+            set tr := 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) with htr
+            rcases hi with ⟨_, s_i_eq_stuff, _⟩
 
-          -- algebra useful in multiple steps of the proof
-          have D_pow_add_algebra : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) := by
-            have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0)  := by
-              exact zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) _ _
-            rw [z_pow_add_D]
-            ring
-          have D_pow_rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0) := by
-            have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
-            rw [exp_rearrangement]
+            -- algebra useful in multiple steps of the proof
+            have D_pow_add_algebra : 12 * (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) := by
+              have z_pow_add_D: (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = (D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0)  * (D ^ (𝔰 u : ℤ) : ℝ≥0)  := by
+                exact zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) _ _
+              rw [z_pow_add_D]
+              ring
+            have D_pow_rearrangment : 12 * (D ^ (- Z * (n + 1) - 1 + 𝔰 u : ℤ) : ℝ≥0) = 12 * (D ^ ( 𝔰 u - Z * (n + 1) - 1 : ℤ) : ℝ≥0) := by
+              have exp_rearrangement : - Z * (n + 1) - 1 + 𝔰 u = 𝔰 u - Z * (n + 1) - 1 := by linarith
+              rw [exp_rearrangement]
 
-          -- prove assumption for small boundary property
-          have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ tr := by
-            have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
-              have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
-              -- Generated with aesop, could be improved
-              rename_i left right
-              simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
-                Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
-                pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
-              obtain ⟨left, right_1⟩ := left
-              exact h1
-            have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * D ^ (𝔰 u: ℤ) := by
+            -- prove assumption for small boundary property
+            have small_boundary_h : D ^ ((- S - s (𝓘 u)) : ℤ) ≤ tr := by
+              have one_le_nnreal_D : 1 ≤ (D : ℝ≥0) := by
+                have h1 : 1 ≤ (D : ℝ) := by exact one_le_D
+                -- Generated with aesop, could be improved
+                rename_i left right
+                simp_all only [defaultA, defaultD, defaultκ, Nat.cast_pow, Nat.cast_ofNat, defaultZ, neg_mul,
+                  Grid.le_def, Nat.cast_mul, Nat.cast_add, Nat.cast_one, mul_eq_mul_left_iff, Nat.ofNat_pos,
+                  pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
+                obtain ⟨left, right_1⟩ := left
+                exact h1
+              have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * D ^ (𝔰 u: ℤ) := by
+                rw [htr]
+                rw [D_pow_add_algebra]
+                rw [D_pow_rearrangment]
+                have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
+                rw [s_i_rearrangement]
+
+                have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
+                have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
+                  exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
+                apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
+              apply (mul_inv_le_iff' (by positivity)).mpr at small_boundary_h_intermediate
+              rw [← NNReal.rpow_neg_one] at small_boundary_h_intermediate
+              have : (D ^ (𝔰 u : ℤ) : ℝ≥0) ^ (-1 : ℝ) = (D ^ (𝔰 u * (-1)) : ℝ≥0) := by 
+                have : (D ^ (𝔰 u : ℤ) : ℝ≥0) = (D ^ (𝔰 u : ℝ) : ℝ≥0) := by norm_cast
+                rw [this]
+                rw [← NNReal.rpow_mul]
+                norm_cast
+              rw [this] at small_boundary_h_intermediate
+              rw [mul_neg_one] at small_boundary_h_intermediate
+              rw [← zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) ] at small_boundary_h_intermediate
+              have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+              rw [s_u_eq_s_𝓘_u] at small_boundary_h_intermediate
+              rw [add_comm] at small_boundary_h_intermediate
+              rw [neg_add_eq_sub] at small_boundary_h_intermediate
+              exact small_boundary_h_intermediate
+            
+            have small_b := GridStructure.small_boundary small_boundary_h
+
+
+            have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
               rw [htr]
-              rw [D_pow_add_algebra]
-              rw [D_pow_rearrangment]
-              have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
-              rw [s_i_rearrangement]
-
-              have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
-              have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
-                exact zpow_le_of_le (one_le_nnreal_D) bound_i_neg_S
-              apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-            apply (mul_inv_le_iff' (by positivity)).mpr at small_boundary_h_intermediate
-            rw [← NNReal.rpow_neg_one] at small_boundary_h_intermediate
-            have : (D ^ (𝔰 u : ℤ) : ℝ≥0) ^ (-1 : ℝ) = (D ^ (𝔰 u * (-1)) : ℝ≥0) := by 
-              have : (D ^ (𝔰 u : ℤ) : ℝ≥0) = (D ^ (𝔰 u : ℝ) : ℝ≥0) := by norm_cast
+              have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
+              rw [← s_u_eq_s_𝓘_u]
+              have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by simp
               rw [this]
-              rw [← NNReal.rpow_mul]
               norm_cast
-            rw [this] at small_boundary_h_intermediate
-            rw [mul_neg_one] at small_boundary_h_intermediate
-            rw [← zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num) ] at small_boundary_h_intermediate
-            have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-            rw [s_u_eq_s_𝓘_u] at small_boundary_h_intermediate
-            rw [add_comm] at small_boundary_h_intermediate
-            rw [neg_add_eq_sub] at small_boundary_h_intermediate
-            exact small_boundary_h_intermediate
-          
-          have small_b := GridStructure.small_boundary small_boundary_h
-
-
-          have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
-            rw [htr]
-            have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := by rfl
-            rw [← s_u_eq_s_𝓘_u]
-            have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by simp
-            rw [this]
-            norm_cast
-            rw_mod_cast [D_pow_add_algebra]
-            rw [D_pow_rearrangment]
-            rw [h_X_u]
-            have : 12 * (D ^ (𝔰 u - (Z * (n + 1) : ℤ) - 1) : ℝ≥0∞) = ((12 * (D ^ (𝔰 u - (Z * (n + 1)) - 1) : ℝ≥0)) : ℝ≥0∞) := by 
+              rw_mod_cast [D_pow_add_algebra]
+              rw [D_pow_rearrangment]
+              rw [h_X_u]
+              have : 12 * (D ^ (𝔰 u - (Z * (n + 1) : ℤ) - 1) : ℝ≥0∞) = ((12 * (D ^ (𝔰 u - (Z * (n + 1)) - 1) : ℝ≥0)) : ℝ≥0∞) := by 
+                simp
+              norm_cast at this
+              rw [this]
+            have grid_dot_s : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
+            rw [← grid_dot_s] at X_u_eq_set
+            clear grid_dot_s
+            rw [← X_u_eq_set] at small_b
+            clear X_u_eq_set
+            /- rw [htr] at small_b -/
+            rw [measureReal_def] at small_b
+            rw [measureReal_def] at small_b
+            rw [← ENNReal.toReal_le_toReal]
+            · rw [ENNReal.toReal_mul]
+              have : (2 * (tr ^ κ : ℝ≥0∞)).toReal = 2 * tr ^ κ  := by 
+                rw [ENNReal.toReal_mul]
+                conv_lhs => norm_cast
+                congr
+                rw [← ENNReal.toReal_rpow]
+                congr
+              rw [this]
+              exact small_b
+            · apply LT.lt.ne
+              rw [h_X_u]
+              apply lt_of_le_of_lt
+              · apply volume.mono
+                exact inter_subset_left
               simp
-            norm_cast at this
-            rw [this]
-          have grid_dot_s : GridStructure.s (𝓘 u) = s (𝓘 u) := by rfl
-          rw [← grid_dot_s] at X_u_eq_set
-          clear grid_dot_s
-          rw [← X_u_eq_set] at small_b
-          clear X_u_eq_set
-          /- rw [htr] at small_b -/
-          rw [measureReal_def] at small_b
-          rw [measureReal_def] at small_b
-          rw [← ENNReal.toReal_le_toReal]
-          · rw [ENNReal.toReal_mul]
-            have : (2 * (tr ^ κ : ℝ≥0∞)).toReal = 2 * tr ^ κ  := by 
-              rw [ENNReal.toReal_mul]
-              conv_lhs => norm_cast
-              congr
-              rw [← ENNReal.toReal_rpow]
-              congr
-            rw [this]
-            exact small_b
-          · apply LT.lt.ne
-            rw [h_X_u]
-            apply lt_of_le_of_lt
-            · apply volume.mono
-              exact inter_subset_left
-            simp
-            apply lt_top_iff_ne_top.mpr
-            apply LT.lt.ne
-            simp [volume_coeGrid_lt_top]
-          · apply LT.lt.ne
-            have tr_lt_top : 2 * (tr : ℝ≥0∞) ^ κ < ⊤ := by
-              rw [htr]
-              have : 2 * ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ := by 
-                have h1 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) < ⊤ := by 
-                  apply WithTop.coe_lt_top
-                have h3 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ :=
-                  (ENNReal.rpow_lt_top_of_nonneg κ_nonneg) (lt_top_iff_ne_top.mp h1)
-                exact WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h3
-              exact this
-            apply WithTop.mul_lt_top tr_lt_top (lt_top_iff_ne_top.mpr I_u_finite)
+              apply lt_top_iff_ne_top.mpr
+              apply LT.lt.ne
+              simp [volume_coeGrid_lt_top]
+            · apply LT.lt.ne
+              have tr_lt_top : 2 * (tr : ℝ≥0∞) ^ κ < ⊤ := by
+                rw [htr]
+                have : 2 * ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ := by 
+                  have h1 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) < ⊤ := by 
+                    apply WithTop.coe_lt_top
+                  have h3 : ((12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) : ℝ≥0∞ ) ^ κ < ⊤ :=
+                    (ENNReal.rpow_lt_top_of_nonneg κ_nonneg) (lt_top_iff_ne_top.mp h1)
+                  exact WithTop.mul_lt_top (by apply WithTop.coe_lt_top) h3
+                exact this
+              apply WithTop.mul_lt_top tr_lt_top (lt_top_iff_ne_top.mpr I_u_finite)
 
-        -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
-        -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
-        /- specialize small_boundary_observation default -/
+          -- the reason this isn't just `exact small_boundary_observation` is because of the ∀ i ∈ 𝓛 (X := X) n u
+          -- leaving as sorry for now since I am not sure if we need ∀ i ∈ 𝓛 (X := X) n u
+          /- specialize small_boundary_observation default -/
 
-        /- have foo : Set.Nonempty (𝓛 (X := X) n u) := 𝓛_n_u_non_empty -/
+          /- have foo : Set.Nonempty (𝓛 (X := X) n u) := 𝓛_n_u_non_empty -/
 
-        obtain ⟨i, hi⟩ := 𝓛_n_u_non_empty hu
+          obtain ⟨i, hi⟩ := h_𝓛_n_u_non_empty
 
-        exact small_boundary_observation i hi
+          exact small_boundary_observation i hi
 
-    _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
-      /- rw [C5_2_9] -/
-      have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
-        have twelve_le_D : 12 ≤ D := by 
-          have foo : ProofData a q K σ₁ σ₂ F G := by infer_instance
-          have : 4 ≤ a := foo.four_le_a
-          simp [defaultD]
-          have : 2 ^ (100) ≤ 2^ (100 * a ^2) := by 
-            apply (Nat.pow_le_pow_iff_right ?_).mpr
-            simp
+      _ ≤ C5_2_9 X n * volume (𝓘 u : Set X) := by -- choosing the right k and D
+        /- rw [C5_2_9] -/
+        have coeff_ineq :  2 * (12 * D ^ (-Z * (n + 1) - 1 : ℝ)) ^ κ ≤ (D ^ (1 - κ * Z * (n + 1)) : ℝ≥0) := by 
+          have twelve_le_D : 12 ≤ D := by 
+            have foo : ProofData a q K σ₁ σ₂ F G := by infer_instance
+            have : 4 ≤ a := foo.four_le_a
+            simp [defaultD]
+            have : 2 ^ (100) ≤ 2^ (100 * a ^2) := by 
+              apply (Nat.pow_le_pow_iff_right ?_).mpr
+              simp
+              nlinarith
+              norm_num
             nlinarith
-            norm_num
-          nlinarith
-        have twelve_le_D_nnreal : (12 : ℝ≥0) ≤ D := by
-          norm_cast
-        have two_le_D : 2 ≤ D := by linarith
-        have two_le_D_nnreal : (2 : ℝ≥0) ≤ D := by norm_cast
-        have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
-          have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
-            apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
-            apply NNReal.rpow_le_one ?_ ?_
-            have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
-            apply div_le_one_of_le twelve_le_D_nnreal
-            simp [D_pos]
-            apply κ_nonneg
-            simp [MulLECancellable]
-          exact le_trans this two_le_D_nnreal
-        have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
-          rw [← inv_mul_eq_div] at two_time_twelve_over_D_to_the_k_le_D
-          rw [NNReal.mul_rpow] at two_time_twelve_over_D_to_the_k_le_D
-          rw [NNReal.inv_rpow] at two_time_twelve_over_D_to_the_k_le_D
-          rw [← NNReal.rpow_neg] at two_time_twelve_over_D_to_the_k_le_D
-          nth_rewrite 2 [mul_comm] at two_time_twelve_over_D_to_the_k_le_D
-          rw [← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
-          exact two_time_twelve_over_D_to_the_k_le_D
-        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
-          apply mul_le_mul_of_nonneg_right two_times_twelve_k_D_minus_k_le_D ?_
+          have twelve_le_D_nnreal : (12 : ℝ≥0) ≤ D := by
+            norm_cast
+          have two_le_D : 2 ≤ D := by linarith
+          have two_le_D_nnreal : (2 : ℝ≥0) ≤ D := by norm_cast
+          have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
+            have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
+              apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
+              apply NNReal.rpow_le_one ?_ ?_
+              have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
+              apply div_le_one_of_le twelve_le_D_nnreal
+              simp [D_pos]
+              apply κ_nonneg
+              simp [MulLECancellable]
+            exact le_trans this two_le_D_nnreal
+          have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
+            rw [← inv_mul_eq_div] at two_time_twelve_over_D_to_the_k_le_D
+            rw [NNReal.mul_rpow] at two_time_twelve_over_D_to_the_k_le_D
+            rw [NNReal.inv_rpow] at two_time_twelve_over_D_to_the_k_le_D
+            rw [← NNReal.rpow_neg] at two_time_twelve_over_D_to_the_k_le_D
+            nth_rewrite 2 [mul_comm] at two_time_twelve_over_D_to_the_k_le_D
+            rw [← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
+            exact two_time_twelve_over_D_to_the_k_le_D
+          have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-κ) * D ^ (-κ * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+            apply mul_le_mul_of_nonneg_right two_times_twelve_k_D_minus_k_le_D ?_
+            positivity
+          have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-1*κ)  * D ^ (-1* κ  * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
+            rw [← neg_eq_neg_one_mul]
+            exact mul_by_D_to_the_k_Z
+          have rearrange_exponents : 2 * (12 : ℝ≥0) ^ κ * (D ^ (-(1 : ℝ))) ^ κ * (D ^ (-(1 : ℝ) * Z * (n + 1)) : ℝ≥0) ^ κ ≤ (D : ℝ≥0) ^ (1 : ℝ) * D ^ (-κ * Z * (n + 1)) := by
+            have : (-1* κ  * Z * (n + 1) : ℝ) = (-1 * Z * (n + 1)) * κ := by ring
+            rw [this] at mul_by_D_to_the_k_Z
+            rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
+            rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
+            rw [NNReal.rpow_one]
+            exact mul_by_D_to_the_k_Z
+          have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℝ ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
+            rw [mul_assoc] at rearrange_exponents
+            rw [← NNReal.mul_rpow] at rearrange_exponents
+            rw [mul_assoc] at rearrange_exponents
+            rw [← NNReal.mul_rpow] at rearrange_exponents
+            rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
+            rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
+            rw [add_comm] at rearrange_exponents
+            rw [← neg_eq_neg_one_mul] at rearrange_exponents
+            rw [← Ring.sub_eq_add_neg] at rearrange_exponents
+            have : 1 + -κ * Z * (n + 1) = 1 - κ * Z * (n + 1) := by ring
+            rw [this] at rearrange_exponents
+            exact rearrange_exponents
+          exact simplify_exponenets
+        rw [C5_2_9]
+        apply ENNReal.coe_le_coe.mpr at coeff_ineq
+        norm_cast
+        -- should be this with some minor modificiation for nested nnreal
+        have : 12 * (D ^ (-Z * (n + 1) - 1: ℤ ) : ℝ≥0) ≠ 0 := by 
+          simp
           positivity
-        have mul_by_D_to_the_k_Z : 2 * 12 ^ κ * D ^ (-1*κ)  * D ^ (-1* κ  * Z * (n + 1)) ≤ (D : ℝ≥0) * D ^ (-κ * Z * (n + 1)) := by 
-          rw [← neg_eq_neg_one_mul]
-          exact mul_by_D_to_the_k_Z
-        have rearrange_exponents : 2 * (12 : ℝ≥0) ^ κ * (D ^ (-(1 : ℝ))) ^ κ * (D ^ (-(1 : ℝ) * Z * (n + 1)) : ℝ≥0) ^ κ ≤ (D : ℝ≥0) ^ (1 : ℝ) * D ^ (-κ * Z * (n + 1)) := by
-          have : (-1* κ  * Z * (n + 1) : ℝ) = (-1 * Z * (n + 1)) * κ := by ring
-          rw [this] at mul_by_D_to_the_k_Z
-          rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
-          rw [NNReal.rpow_mul] at mul_by_D_to_the_k_Z
-          rw [NNReal.rpow_one]
-          exact mul_by_D_to_the_k_Z
-        have simplify_exponenets : 2 * (12 * D ^ (-(Z : ℝ ) * (n + 1) - 1)) ^ κ ≤ (D : ℝ≥0) ^ (1 - κ * Z * (n + 1)) := by
-          rw [mul_assoc] at rearrange_exponents
-          rw [← NNReal.mul_rpow] at rearrange_exponents
-          rw [mul_assoc] at rearrange_exponents
-          rw [← NNReal.mul_rpow] at rearrange_exponents
-          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
-          rw [← NNReal.rpow_add (by positivity)] at rearrange_exponents
-          rw [add_comm] at rearrange_exponents
-          rw [← neg_eq_neg_one_mul] at rearrange_exponents
-          rw [← Ring.sub_eq_add_neg] at rearrange_exponents
-          have : 1 + -κ * Z * (n + 1) = 1 - κ * Z * (n + 1) := by ring
-          rw [this] at rearrange_exponents
-          exact rearrange_exponents
-        exact simplify_exponenets
-      rw [C5_2_9]
-      apply ENNReal.coe_le_coe.mpr at coeff_ineq
-      norm_cast
-      have : (2 * (12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ) : ℝ≥0∞) = 2 * ((12 * (D ^ (-Z * (n + 1) - 1 : ℤ) : ℝ≥0)) : ℝ≥0∞) ^ κ := by sorry
-      -- should be this with some minor modificiation for nested nnreal
-      have : 12 * (D ^ (-Z * (n + 1) - 1: ℤ ) : ℝ≥0) ≠ 0 := by 
-        simp
-        positivity
-      rw [← ENNReal.coe_rpow_of_ne_zero (by exact this)] -- why do I need this with exact_mod_cast?
-      exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
-
-
-#leansearch "(a : ℝ≥0∞) (b : ℝ) (h1 : a < ⊤ ) : a ^ b < ⊤?"
-#leansearch "a + -b = a - b?"
-
-
-#check lt_top_iff_ne_top
-
-
-#synth CommMonoid NNReal 
-
+        rw [← ENNReal.coe_rpow_of_ne_zero (by exact this)] -- why do I need this with exact_mod_cast?
+        exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
+  · have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) = 0 := by 
+      have h1 : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
+      have h2: ∑' i : 𝓛 (X := X) n u, volume (i : Set X) = 0 := by 
+        have : 𝓛 (X := X) n u = ∅ := by 
+          /- have : ¬(𝓛 n u).Nonempty = ¬ (Nonempty (𝓛 n u)) := by simp -/
+          rw [Set.Nonempty] at h_𝓛_n_u_non_empty
+          have : ¬Nonempty (𝓛 (X := X) n u) := by simp_all [h_𝓛_n_u_non_empty]
+          apply Set.not_nonempty_iff_eq_empty'.mp this
+        simp_all
+      have h4 : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ 0 := le_of_le_of_eq h1 h2
+      have h3 : 0 ≤  volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) := by simp
+      exact le_antisymm h4 h3
+    rw [this]
+    simp
 
 lemma third_exception_aux :
     volume (⋃ p ∈ 𝔏₄ (X := X) k n j, (𝓘 p : Set X)) ≤
