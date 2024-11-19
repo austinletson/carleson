@@ -661,53 +661,47 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
       _ ≤ volume X_u := by
           have i_subset_X_u : ∀ i ∈ 𝓛 (X := X) n u, coeGrid i ⊆ X_u := by -- 5.2.25
             intro i ⟨⟨i_subset_I_u, _⟩, s_i_eq_stuff, I_not_contain_8_ball⟩ ipt hipt
-            constructor
-            · exact i_subset_I_u hipt
-            · have exponential_simplification : 𝔰 u - Z * (n + 1) - 1 = s i := by norm_cast; linarith
-              rw [exponential_simplification] -- simplify D exponential expression
+            refine ⟨i_subset_I_u hipt, ?_⟩
+            rw [show 𝔰 u - Z * (n + 1) - 1 = s i by norm_cast; linarith]
 
-              obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
+            obtain ⟨bpt, hbpt, h_bpt_not_in_I_u⟩ : ∃ b ∈ ball (c i) (8 * ↑D ^ s i), b ∉ ↑(𝓘 u) := not_subset.mp I_not_contain_8_ball
 
-              -- triangle inequality between ipt, bpt, c i
-              have ipt_bpt_triangle_ineq : dist ipt bpt ≤ (12 * D ^ s i : ℝ) :=
-                calc dist ipt bpt
-                  _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
-                  _ ≤ 4 * D ^ s i + dist (c i) bpt := by
-                    have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
-                      have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
-                      simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-                        Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-                    rel [dist_ipt_c_i_le]
-                  _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw [dist_comm]
-                  _ ≤ 4 * D ^ s i + 8 * D ^ s i := by
-                      have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
-                        defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
-                        Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
-                      rel [dist_bpt_c_i_le]
-                  _ ≤ 12 * D ^ s i := by linarith
+            -- triangle inequality between ipt, bpt, c i
+            have ipt_bpt_triangle_ineq : dist ipt bpt ≤ (12 * D ^ s i : ℝ) :=
+              calc dist ipt bpt
+                _ ≤ dist ipt (c i) + dist (c i) bpt := dist_triangle ipt (c i) bpt
+                _ ≤ 4 * D ^ s i + dist (c i) bpt := by
+                  have dist_ipt_c_i_le : dist ipt (c i) < 4 * D ^ s i := by
+                    have ipt_in_ball_4 : ipt ∈ ball (c i) (4 * D ^ s i) := Grid_subset_ball hipt
+                    simp_all only [defaultA, defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                  rel [dist_ipt_c_i_le]
+                _ ≤ 4 * D ^ s i + dist bpt (c i) := by rw [dist_comm]
+                _ ≤ 4 * D ^ s i + 8 * D ^ s i := by
+                    have dist_bpt_c_i_le : dist bpt (c i) < 8 * D ^ s i := by simp_all only [defaultA,
+                      defaultD, defaultκ, le_eq_subset, defaultZ, Nat.cast_mul, Nat.cast_pow,
+                      Nat.cast_ofNat, Nat.cast_add, Nat.cast_one, ball, mem_setOf_eq, Grid.mem_def]
+                    rel [dist_bpt_c_i_le]
+                _ ≤ 12 * D ^ s i := by linarith
 
-              -- convert from dist to edist
-              have edist_triangle: edist ipt bpt ≤ ENNReal.ofReal (12 * D ^ s i) := by
+
+            -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
+            calc EMetric.infEdist ipt (coeGrid (𝓘 u))ᶜ
+              _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem <| Set.mem_compl h_bpt_not_in_I_u
+              _ ≤ ENNReal.ofReal (12 * D ^ s i) := by
                 rw [edist_dist]
                 exact ENNReal.ofReal_le_ofReal ipt_bpt_triangle_ineq
+              _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := le_of_eq <|
+                congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
+                    simpa using zpow_nonneg (by simp [one_le_D]) (s i)
+              _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
+                  push_cast
+                  rw [ENNReal.coe_zpow]
+                  · push_cast
+                    rfl
+                  · simp [one_le_D]
 
-              -- show the the triangle inequality implies infEdist <= 12 * D ^ s i
-              have bpt_mem_I_u_comp : bpt ∈ ( coeGrid (𝓘 u))ᶜ := by exact Set.mem_compl h_bpt_not_in_I_u
-              calc EMetric.infEdist ipt ( coeGrid (𝓘 u))ᶜ
-                _ ≤ edist ipt bpt := EMetric.infEdist_le_edist_of_mem bpt_mem_I_u_comp
-                _ ≤ ENNReal.ofReal (12 * D ^ s i) := edist_triangle
-                _ ≤ ENNReal.ofNNReal (12 * D ^ s i) := le_of_eq <|
-                  congr_arg (ENNReal.ofNNReal) <| NNReal.coe_injective <| by
-                      simpa using zpow_nonneg (by simp [one_le_D]) (s i)
-                _ ≤ 12 * (D ^ (s i : ℤ) :  ℝ≥0∞) := by
-                    push_cast
-                    rw [ENNReal.coe_zpow]
-                    · push_cast
-                      rfl
-                    · simp [one_le_D]
-
-          have vol_colon_type_eq_vol_member : ⋃ i ∈ 𝓛 (X := X) n u, (i : Set X) = ⋃ i : 𝓛 (X := X) n u, (i : Set X) := by simp
-          rw [vol_colon_type_eq_vol_member]
+          rw [show ⋃ i ∈ 𝓛 (X := X) n u, (i : Set X) = ⋃ i : 𝓛 (X := X) n u, (i : Set X) by simp]
           exact measure_mono <| Set.iUnion_subset_iff.mpr <| by simp [i_subset_X_u]
       _ ≤ 2 * (12 * D ^ (- Z * (n + 1) - 1 : ℤ) : ℝ≥0) ^ κ * volume (𝓘 u : Set X) := by
 
@@ -736,40 +730,29 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
                   pow_pos, OfNat.ofNat_ne_zero, or_false, ge_iff_le, X_u, tr]
                 exact h1
               have small_boundary_h_intermediate : D ^ (- S : ℤ) ≤ tr * D ^ (𝔰 u: ℤ) := by
-                rw [htr, D_pow_add_algebra, D_pow_rearrangment]
-                have s_i_rearrangement : 𝔰 u - Z * (n + 1) - 1 = s i := by rw [← s_i_eq_stuff]; norm_cast; linarith
-                rw [s_i_rearrangement]
+                rw [htr, D_pow_add_algebra, D_pow_rearrangment,
+                    show 𝔰 u - Z * (n + 1) - 1 = s i by rw [← s_i_eq_stuff]; norm_cast; linarith]
 
                 have bound_i_neg_S : -S ≤ s i := (mem_Icc.mp (range_s_subset ⟨i, rfl⟩)).1
-                have D_S_lt_D_s_i : (D ^ (- S : ℤ) : ℝ≥0) ≤ (D ^ (s i : ℤ) : ℝ≥0) := by
-                  exact zpow_le_zpow_right₀ (one_le_nnreal_D) bound_i_neg_S
-                apply le_mul_of_one_le_of_le (by simp) D_S_lt_D_s_i
-              apply (mul_inv_le_iff₀ (by positivity)).mpr at small_boundary_h_intermediate
+                exact le_mul_of_one_le_of_le (by simp) <| zpow_le_zpow_right₀ (one_le_nnreal_D) bound_i_neg_S
+              apply (mul_inv_le_iff₀ <| by positivity).mpr at small_boundary_h_intermediate
               rw [← NNReal.rpow_neg_one] at small_boundary_h_intermediate
               have : (D ^ (𝔰 u : ℤ) : ℝ≥0) ^ (-1 : ℝ) = (D ^ (𝔰 u * (-1)) : ℝ≥0) := by 
-                have : (D ^ (𝔰 u : ℤ) : ℝ≥0) = (D ^ (𝔰 u : ℝ) : ℝ≥0) := by norm_cast
-                rw [this]
-                rw [← NNReal.rpow_mul]
+                rw [show (D ^ (𝔰 u : ℤ) : ℝ≥0) = (D ^ (𝔰 u : ℝ) : ℝ≥0) by norm_cast, ← NNReal.rpow_mul]
                 norm_cast
               rwa [this, mul_neg_one, ← zpow_add₀ (show (D : ℝ≥0) ≠ 0 by norm_num),
-                 show 𝔰 u = s (𝓘 u) from rfl, add_comm,
-                 neg_add_eq_sub] at small_boundary_h_intermediate
+                   show 𝔰 u = s (𝓘 u) from rfl, add_comm,
+                   neg_add_eq_sub] at small_boundary_h_intermediate
             
             have small_b := GridStructure.small_boundary small_boundary_h
 
             have X_u_eq_set : X_u = { x ∈ coeGrid (𝓘 u) | EMetric.infEdist x (coeGrid (𝓘 u))ᶜ ≤ ((tr * D ^ (s (𝓘 u))):ℝ≥0∞)} := by
-              rw [htr]
-              have s_u_eq_s_𝓘_u : 𝔰 u = s (𝓘 u) := rfl
-              rw [← s_u_eq_s_𝓘_u]
-              have : (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) := by simp
-              rw [this]
-              norm_cast
-              rw_mod_cast [D_pow_add_algebra]
-              rw [D_pow_rearrangment, h_X_u]
+              rw [htr, show s (𝓘 u) = 𝔰 u from rfl,
+                  show (D ^ 𝔰 u : ℝ≥0∞) = (D ^ 𝔰 u : ℝ≥0) by simp]
+              rw_mod_cast [D_pow_add_algebra, D_pow_rearrangment, h_X_u]
               have : 12 * (D ^ (𝔰 u - (Z * (n + 1) : ℤ) - 1) : ℝ≥0∞) = ((12 * (D ^ (𝔰 u - (Z * (n + 1)) - 1) : ℝ≥0)) : ℝ≥0∞) := by 
                 simp
-              norm_cast at this
-              rw [this]
+              rw_mod_cast [this]
             rw [show s (𝓘 u) = GridStructure.s (𝓘 u) from rfl] at X_u_eq_set
             rw [← X_u_eq_set, measureReal_def, measureReal_def] at small_b
             rw [← ENNReal.toReal_le_toReal]
@@ -777,7 +760,7 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
               have : (2 * (tr ^ κ : ℝ≥0∞)).toReal = 2 * tr ^ κ  := by 
                 norm_cast
                 rw [ENNReal.toReal_mul, ← ENNReal.toReal_rpow]
-                congr
+                rfl
               rwa [this]
             · apply LT.lt.ne
               rw [h_X_u]
@@ -811,19 +794,16 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
             have : 2 ^ (100) ≤ 2^ (100 * a ^2) := (Nat.pow_le_pow_iff_right (by nlinarith)).mpr <| by nlinarith
             simp only [defaultD, ge_iff_le]
             nlinarith
-          have twelve_le_D_nnreal : (12 : ℝ≥0) ≤ D := by norm_cast
           have two_le_D : 2 ≤ D := by linarith
-          have two_le_D_nnreal : (2 : ℝ≥0) ≤ D := by norm_cast
           have two_time_twelve_over_D_to_the_k_le_D : 2 * (12 / D) ^ κ ≤ (D : ℝ≥0) := by 
             have : 2 * (12 / D) ^ κ ≤ (2 : ℝ≥0) := by
               apply (MulLECancellable.mul_le_iff_le_one_right ?_).mpr
               apply NNReal.rpow_le_one
-              have D_pos : 0 < (D : ℝ≥0) := by simp [one_le_D]
-              apply div_le_one_of_le₀ twelve_le_D_nnreal
-              simp [D_pos]
+              apply div_le_one_of_le₀ <| by norm_cast
+              simp only [zero_le]
               apply κ_nonneg
               simp [MulLECancellable]
-            exact this.trans two_le_D_nnreal
+            exact this.trans <| by norm_cast
           have two_times_twelve_k_D_minus_k_le_D : 2 * 12 ^ κ * D ^ (-κ) ≤ (D : ℝ≥0) := by 
             rwa [← inv_mul_eq_div, NNReal.mul_rpow, NNReal.inv_rpow,
                 ← NNReal.rpow_neg, mul_comm _ (12 ^ κ), ← mul_assoc] at two_time_twelve_over_D_to_the_k_le_D
@@ -850,11 +830,11 @@ lemma boundary_exception {u : 𝔓 X} (hu : u ∈ 𝔘₁ k n l) :
         exact_mod_cast mul_le_mul_right' coeff_ineq (volume (𝓘 u : Set X))
   · have : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) = 0 := by 
       have h1 : volume (⋃ i ∈ 𝓛 (X := X) n u, (i : Set X)) ≤ ∑' i : 𝓛 (X := X) n u, volume (i : Set X) := measure_biUnion_le _ (𝓛 n u).to_countable _
-      have h2: ∑' i : 𝓛 (X := X) n u, volume (i : Set X) = 0 := by 
-        have : 𝓛 (X := X) n u = ∅ := by 
+      have h2: ∑' i : 𝓛 (X := X) n u, volume (i : Set X) = 0 := by
+        have : 𝓛 (X := X) n u = ∅ := Set.not_nonempty_iff_eq_empty'.mp <| by 
           rw [Set.Nonempty] at h_𝓛_n_u_non_empty
-          exact Set.not_nonempty_iff_eq_empty'.mp <| by simp [h_𝓛_n_u_non_empty]
-        simp_all
+          simp [h_𝓛_n_u_non_empty]
+        simp [this]
       exact (le_of_le_of_eq h1 h2).antisymm (by simp)
     simp [this]
 
